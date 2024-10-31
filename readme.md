@@ -14,3 +14,4 @@ Fit polish
 
 Spectral scrubber
 
+Quartics and sextics
