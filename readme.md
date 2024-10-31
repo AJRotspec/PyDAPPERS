@@ -4,3 +4,8 @@ Dependencies are tkinter, numpy, scipy, networkx, and matplotlib
 
 The design of this is for it to run as similar to the original DAPPERS as possible. Buttons should be the same and do the same thing, more or less, as in the original, though this may change in later updates.
 
+Current todolist:
+Add in support for P branches
+Fit polish
+Spectral scrubber
+
