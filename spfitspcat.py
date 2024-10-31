@@ -345,7 +345,7 @@ class LinFile:
         for pair in assignmentpairs:
             self.lines += [{'obs': pair[0], 'jkk': pair[1]}]
     def makefile(self):
-        self.lines.sort()
+        self.lines.sort(key = lambda x: x['obs'])
         with open(self.name, 'w') as f:
             for line in self.lines:
                 for j in line['jkk']:

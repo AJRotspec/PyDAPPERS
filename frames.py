@@ -84,7 +84,7 @@ class fitbankbase(baseframe):
     def __init__(self, root):
         self.fitswindow = Toplevel(root)
         inputframe = self.Frame(self.fitswindow)
-        inputframe.pack(side = 'left')
+        inputframe.pack(side = 'left', pady = 10)
         self.labels = []
         self.entries = []
         for field in ['A', 'B', 'C']:
@@ -531,6 +531,39 @@ class fitbankwindow(fitbankbase):
             lin.makefile()
         compilebutton = self.Button(self.fitswindow, text = 'Compile Selected Fits', command = comp)
         compilebutton.pack(side = 'bottom')
+            
+        resframe = self.Frame(self.fitswindow)
+        resframe.pack(side = 'bottom',  fill = 'x')
+
+        finrms = self.Label(resframe, text = 'rms: ')
+        finrms.pack(side = 'left', padx = 10)
+
+        finA = self.Label(resframe, text = 'A: ')
+        finA.pack(side = 'left', padx = 10)
+
+        finB = self.Label(resframe, text = 'B: ')
+        finB.pack(side = 'left', padx = 10)
+
+        finC = self.Label(resframe, text = 'C: ')
+        finC.pack(side = 'left', padx = 10)
+        
+        def run():
+            values = [float(entry.get()) for entry in self.entries]
+            parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], 1e3, 'A'),
+                                                          '20000': (values[1], 1e3, 'B'),
+                                                          '30000': (values[2], 1e3, 'C')}})
+            parfil.makefile()                
+            call(['Rot\\spfit', 'activememory\\finfit.par'],
+                 stdout = DEVNULL, shell = True)
+            os.remove('activememory\\finfit.bak')
+            finfit = FitFile('activememory\\finfit.fit')
+            finrms.configure(text = f'rms: {finfit.rms}')
+            finA.configure(text = f'rms: {finfit.vardict["A"]}')
+            finB.configure(text = f'rms: {finfit.vardict["B"]}')
+            finC.configure(text = f'rms: {finfit.vardict["C"]}')
+            
+        self.runbutton2.configure(command = run)
+
 
                               
         
