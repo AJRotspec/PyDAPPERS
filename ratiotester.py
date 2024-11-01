@@ -10,7 +10,7 @@ import numpy as np
 import networkx as nx
 
 
-maxJ = 20
+maxJ = 100
 progressions = {'Ra J0J':[[i + 1, 0, i + 1, i, 0, i] for i in range(maxJ)],
                 'Ra J1J-':[[i + 1, 1, i + 1, i, 1, i] for i in range(maxJ)],
                 'Ra J1J+':[[i + 2, 1, i + 1, i + 1, 1, i] for i in range(maxJ)],
