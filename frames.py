@@ -442,10 +442,14 @@ class searchfitsframe(baseframe):
         resultsbutton = self.Button(frame, text = 'View Results')
         resultsbutton.grid(row = 4, column = 0)
         
+        maxlength = self.Label(frame, text = 'Max length: NA')
+        maxlength.grid(row = 5)
+        
         def findfits():
             windows = [float(entry.get()) for entry in entries]
             ff = fitfinder(*windows, proginuse, (lowerfreq, upperfreq))
             ff.writelins()
+            maxlength.configure(text = f'Max length: {ff.maxpath}')
             
                 
         findfitsbutton = self.Button(frame, text = 'Find Fits',

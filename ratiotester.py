@@ -102,8 +102,8 @@ class fitfinder:
                 self.net.graph['trans'][node[1]].remove(node[0])
         
         #This must be changed later
-        maxpath = nx.dag_longest_path_length(self.net)
-        self.paths = self.pathfinder(maxpath - 1)
+        self.maxpath = nx.dag_longest_path_length(self.net) + 1
+        self.paths = self.pathfinder(self.maxpath - 2)
         print(nx.dag_longest_path(self.net))
         print(len(self.paths))
     
