@@ -572,6 +572,32 @@ class fitbankwindow(fitbankbase):
         finC.pack(side = 'left', padx = 10)
         
         
+        makecatbutton = self.Button(self.resframe, text = 'Make .cat File')
+        makecatbutton.pack(side = 'right')
+        def makecat():
+            def save():
+                values = [float(entry.get()) for entry in entries]
+                intfil = IntFile(self.parpath[:-3] + 'int', values)
+                intfil.makefile()
+                call(['Rot\\spcat', self.parpath[:-3] + 'var'],
+                     stdout = DEVNULL, shell = True)
+                input_window.destroy()
+
+            if 'base.int' in os.listdir('activememory'):
+                shutil.copy('activememory\\base.int', self.parpath[:-3] + 'int')
+            else:
+                input_window = Toplevel(root)
+                input_window.title('Input Dipole Moments')
+                labels = []
+                entries = []
+                for field in ['µa', 'µb', 'µc']:
+                    labels += [self.Label(input_window, text = f'{field}: ')]
+                    labels[-1].pack(pady=10)
+                    
+                    entries += [self.Entry(input_window)]
+                    entries[-1].pack(padx=10)
+                self.Button(input_window, text = 'Save', command = save).pack(pady = 10)
+        makecatbutton.configure(command = makecat)
         savebutton = self.Button(self.resframe, text = 'Save')
         savebutton.pack(side = 'right')
         def save():
@@ -582,12 +608,16 @@ class fitbankwindow(fitbankbase):
             basename = self.Entry(basenamewindow)
             basename.pack(pady = 10)
             def finsave(event):
-                for ext in ['fit', 'lin', 'par', 'var']:
-                    shutil.copy(self.parpath[:-3] + ext, savepath + '/' + basename.get() + '.' + ext)
+                for ext in ['fit', 'lin', 'par', 'var', 'int', 'cat']:
+                    try:
+                        shutil.copy(self.parpath[:-3] + ext, savepath + '/' + basename.get() + '.' + ext)
+                    except:
+                        pass
                 basenamewindow.destroy()
 
             basename.bind('<Return>', finsave)
         savebutton.configure(command = save)
+        
                 
         
         
