@@ -158,6 +158,12 @@ class peaklistframe(baseframe):
         loadbutton = self.Button(frame, text = 'Load Peak List', 
                         command = lambda: self.load_file('Load Peak List', peakloader))
         loadbutton.pack(pady = 10)
+        
+        viewbutton = self.Button(frame, text = 'View Peaklist')
+        def viewpeaks():
+            txtreadwindow(root, 'activememory\\peaklist.txt')
+        viewbutton.configure(command = viewpeaks)
+        viewbutton.pack(pady = 10)
     
 class plotframe(baseframe):
     def __init__(self, root, filename):
