@@ -349,9 +349,35 @@ class quantumfilterframe(baseframe):
         frame.grid(row = row, column = column)#, padx=10, pady=10)
         banner = self.Title(frame, text = 'Quantum Filter')
         banner.grid(row = 0, column = 0)
-        filterdisplay = self.Label(frame, text = 'NA')
-        filterdisplay.grid(row = 1, column = 1)
+        self.filterdisplay = self.Label(frame, text = 'NA')
+        self.filterdisplay.grid(row = 1, column = 1)
     
+    
+        def branchselect():
+            quantumfiltwindow(root, self)
+            global upperfreq, lowerfreq
+            lowerfreq = float(self.lowerval.get())
+            upperfreq = float(self.upperval.get())
+
+        makebutton = self.Button(frame, text = 'Select Quantum Filter', 
+                        command = branchselect)
+        makebutton.grid(row = 1, column = 0)
+        
+        self.Label(frame, text = 'Frequency Limits (MHz):').grid(row = 2, column = 0)
+        global lowerfreq, upperfreq
+        lowerfreq = 6000
+        upperfreq = 18000
+        self.Label(frame, text = 'Lower').grid(row = 3, column = 0)
+        self.lowerval = self.Entry(frame, width = 10)
+        self.lowerval.grid(row = 3, column = 1)
+        self.lowerval.insert(0, lowerfreq)
+        self.Label(frame, text = 'Upper').grid(row = 4, column = 0)
+        self.upperval = self.Entry(frame, width = 10)
+        self.upperval.grid(row = 4, column = 1)
+        self.upperval.insert(0, upperfreq)
+        
+class quantumfiltwindow(baseframe):
+    def __init__(self, root, parentframe):
         coldict = {'Ra': 'red', 'Rb': 'light green', 'Rc': 'blue',
                    'Qa': 'pink', 'Qb': 'cyan', 'Qc': 'purple',
                    'Pa': 'gray', 'Pb': 'gray', 'Pc': 'gray'}
@@ -361,18 +387,30 @@ class quantumfilterframe(baseframe):
                     'Qa': ['221', '330', '331', '440', '441', 'JKJ-JK'],
                     'Qb': ['220', '221', '330', '331', '440', '441'],
                     'Qc': []}
+    
+        branchwindow = Toplevel(root)
+        branchwindow.title('Quantum Filters')   
+    
+        # Add input field and button to new window
+        for i, pqr in enumerate('RQP'):
+            for j, abc in enumerate('abc'):
+                branch = pqr + abc
+                button = self.Button(branchwindow, text = f'{pqr} Branch:\n {abc} type', width=10, height=3, bg = coldict[branch],
+                                   command = lambda branch = branch: progselect(branch, branchwindow))
+                button.grid(row = i, column = j, padx=10, pady=10)
+        # save_button = tk.Button(input_window, text="Save", command=save)
+        # save_button.pack(pady=10)
         def progselect(branch, branchwindow):
             progwindow = Toplevel(root)
             progwindow.title(f'{branch[0]} Branch {branch[1]} type')
             def save():
                 for button in buttons:
                     if button[0].get():
-                        filterdisplay.config(text = f'{branch} {button[1]}')
+
+                        parentframe.filterdisplay.config(text = f'{branch} {button[1]}')
                         global proginuse
                         proginuse = branch + ' ' + button[1]
-                global upperfreq, lowerfreq
-                lowerfreq = float(lowerval.get())
-                upperfreq = float(upperval.get())
+                        
                 progwindow.destroy()
                 branchwindow.destroy()
             buttons = []
@@ -384,41 +422,8 @@ class quantumfilterframe(baseframe):
             save_button = self.Button(progwindow, text="Save", command=save)
             save_button.pack(pady=10)
     
-        def branchselect():
-            # def save():
-            #     values = [float(entry.get()) for entry in entries]
-            #     input_window.destroy()
-    
-            branchwindow = Toplevel(root)
-            branchwindow.title('Quantum Filters')   
-        
-            # Add input field and button to new window
-            for i, pqr in enumerate('RQP'):
-                for j, abc in enumerate('abc'):
-                    branch = pqr + abc
-                    button = self.Button(branchwindow, text = f'{pqr} Branch:\n {abc} type', width=10, height=3, bg = coldict[branch],
-                                       command = lambda branch = branch: progselect(branch, branchwindow))
-                    button.grid(row = i, column = j, padx=10, pady=10)
-            # save_button = tk.Button(input_window, text="Save", command=save)
-            # save_button.pack(pady=10)
-    
-         
-        makebutton = self.Button(frame, text = 'Select Quantum Filter', 
-                        command = branchselect)
-        makebutton.grid(row = 1, column = 0)
-        
-        self.Label(frame, text = 'Frequency Limits (MHz):').grid(row = 2, column = 0)
-        global lowerfreq, upperfreq
-        lowerfreq = 6000
-        upperfreq = 18000
-        self.Label(frame, text = 'Lower').grid(row = 3, column = 0)
-        lowerval = self.Entry(frame, width = 10)
-        lowerval.grid(row = 3, column = 1)
-        lowerval.insert(0, lowerfreq)
-        self.Label(frame, text = 'Upper').grid(row = 4, column = 0)
-        upperval = self.Entry(frame, width = 10)
-        upperval.grid(row = 4, column = 1)
-        upperval.insert(0, upperfreq)
+
+
 
 class searchfitsframe(baseframe):
     def __init__(self, root, row = 1, column = 1):
