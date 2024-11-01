@@ -3,4 +3,7 @@ __pycache__
 untitled*
 interface.py
 longtermmem/path.txt
+build/
+dist/
+frames.spec
 
