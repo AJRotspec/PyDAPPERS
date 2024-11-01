@@ -14,7 +14,8 @@ from subprocess import call, DEVNULL
 from scipy.signal import find_peaks, savgol_filter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
-
+import setup
+    
 with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
     
@@ -698,9 +699,9 @@ ops = optionsframe(root)
 
 def on_closing():
     try:
-        # for fil in os.listdir('activememory'):
-        #     if not os.path.isdir('activememory\\' + fil):
-        #         os.remove('activememory\\' + fil)
+        for fil in os.listdir('activememory'):
+            if not os.path.isdir('activememory\\' + fil):
+                os.remove('activememory\\' + fil)
         for fil in os.listdir('activememory\\basefitbank'):
             if not os.path.isdir('activememory\\basefitbank\\' + fil):
                 os.remove('activememory\\basefitbank\\' + fil)
