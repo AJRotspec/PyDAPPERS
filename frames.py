@@ -125,7 +125,6 @@ class fitbankbase(baseframe):
             self.fitdisp.column(head, width = 50, anchor = 'center')
         self.fitdisp.pack(side = 'right')
 
-
 class txtreadwindow(baseframe):
     def __init__(self, root, filename):
         wind = Toplevel(root)
@@ -133,8 +132,7 @@ class txtreadwindow(baseframe):
         contents.pack(expand = True, fill = 'both')
         with open(filename, 'r') as f:
             contents.insert(tk.END, f.read())
-
-        
+       
 class peaklistframe(baseframe):
     def __init__(self, root, row = 1, column = 0):
         frame = self.Frame(root)
@@ -436,9 +434,6 @@ class quantumfiltwindow(baseframe):
             save_button = self.Button(progwindow, text="Save", command=save)
             save_button.pack(pady=10)
     
-
-
-
 class searchfitsframe(baseframe):
     def __init__(self, root, row = 1, column = 1):
         frame = self.Frame(root)
@@ -573,6 +568,22 @@ class fitbankwindow(fitbankbase):
         
         savebutton = self.Button(self.resframe, text = 'Save')
         savebutton.pack(side = 'right')
+        def save():
+            savepath = filedialog.askdirectory(title = f'Select new default path',
+                                              initialdir = defaultpath)
+            basenamewindow = Toplevel(root)
+            self.Label(basenamewindow, text = 'Input base name').pack(pady = 5)
+            basename = self.Entry(basenamewindow)
+            basename.pack(pady = 10)
+            def finsave(event):
+                for ext in ['fit', 'lin', 'par', 'var']:
+                    shutil.copy(self.parpath[:-3] + ext, savepath + '/' + basename.get() + '.' + ext)
+                basenamewindow.destroy()
+
+            basename.bind('<Return>', finsave)
+        savebutton.configure(command = save)
+                
+        
         
         def run():
             values = [float(entry.get()) for entry in self.entries]
@@ -580,28 +591,30 @@ class fitbankwindow(fitbankbase):
                                                           '20000': (values[1], 1e3, 'B'),
                                                           '30000': (values[2], 1e3, 'C')}})
             parfil.makefile()                
-            call(['Rot\\spfit', 'activememory\\finfit.par'],
+            call(['Rot\\spfit', self.parpath],
                  stdout = DEVNULL, shell = True)
-            os.remove('activememory\\finfit.bak')
-            finfit = FitFile('activememory\\finfit.fit')
+            os.remove(self.parpath[:-3] + 'bak')
+            finfit = FitFile(self.parpath[:-3] + 'fit')
             finrms.configure(text = f'rms: {finfit.rms}')
             finA.configure(text = f'A: {finfit.vardict["A"]}')
             finB.configure(text = f'B: {finfit.vardict["B"]}')
             finC.configure(text = f'C: {finfit.vardict["C"]}')
             
         self.runbutton2.configure(command = run)
+        viewbutton = self.Button(self.resframe, text = 'View')
+        viewbutton.pack(side = 'right')
+        def viewfit():
+            txtreadwindow(root, self.parpath[:-3] + 'fit')
+        viewbutton.configure(command = viewfit)
+
 
 class fitpolishwindow(fitbankwindow):
+    parpath = 'activememory\\polishfit.par'
     def __init__(self, root):
         super().__init__(root)
         self.fitdisp.destroy() 
         self.compilebutton.destroy()     
-        viewbutton = self.Button(self.resframe, text = 'View')
-        viewbutton.pack(side = 'right')
-        def viewfit():
-            txtreadwindow(root, 'activememory\\finfit.fit')
-        viewbutton.configure(command = viewfit)
-                        
+              
         
 class optionsframe(baseframe):
     def __init__(self, root, row = 1, column = 2):
