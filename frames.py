@@ -80,6 +80,10 @@ class baseframe:
     def Checkbutton(self, *args, **kwargs):
         return tk.Checkbutton(*args, **self.kwargsoverwriter(kwargs, self.checkbuttonkwargs))
 
+    textkwargs = {}
+    def Text(self, *args, **kwargs):
+        return tk.Text(*args, **self.kwargsoverwriter(kwargs, self.textkwargs))
+
 class fitbankbase(baseframe):
     def __init__(self, root):
         self.fitswindow = Toplevel(root)
@@ -121,6 +125,16 @@ class fitbankbase(baseframe):
             self.fitdisp.column(head, width = 50, anchor = 'center')
         self.fitdisp.pack(side = 'right')
 
+
+class txtreadwindow(baseframe):
+    def __init__(self, root, filename):
+        wind = Toplevel(root)
+        contents = self.Text(wind)
+        contents.pack(expand = True, fill = 'both')
+        with open(filename, 'r') as f:
+            contents.insert(tk.END, f.read())
+
+        
 class peaklistframe(baseframe):
     def __init__(self, root, row = 1, column = 0):
         frame = self.Frame(root)
@@ -481,7 +495,7 @@ class spfitframe(baseframe):
         bankbutton.pack(side = 'left', padx = 10)        
 
         def fitpolish():
-            pass
+            fitpolishwindow(root)
         polishbutton = self.Button(frame, text = 'Fit Polish', 
                               command = fitpolish)
         polishbutton.pack(side = 'left', padx = 10)        
@@ -538,23 +552,27 @@ class fitbankwindow(fitbankbase):
             for item in self.fitdisp.selection():
                 lin.assign(allfits[int(self.fitdisp.item(item, 'values')[-1])].assignments)
             lin.makefile()
-        compilebutton = self.Button(self.fitswindow, text = 'Compile Selected Fits', command = comp)
-        compilebutton.pack(side = 'bottom')
+        self.compilebutton = self.Button(self.fitswindow, text = 'Compile Selected Fits', command = comp)
+        self.compilebutton.pack(side = 'bottom')
             
-        resframe = self.Frame(self.fitswindow)
-        resframe.pack(side = 'bottom',  fill = 'x')
+        self.resframe = self.Frame(self.fitswindow)
+        self.resframe.pack(side = 'bottom',  fill = 'x')
 
-        finrms = self.Label(resframe, text = 'rms: ')
+        finrms = self.Label(self.resframe, text = 'rms: ')
         finrms.pack(side = 'left', padx = 10)
 
-        finA = self.Label(resframe, text = 'A: ')
+        finA = self.Label(self.resframe, text = 'A: ')
         finA.pack(side = 'left', padx = 10)
 
-        finB = self.Label(resframe, text = 'B: ')
+        finB = self.Label(self.resframe, text = 'B: ')
         finB.pack(side = 'left', padx = 10)
 
-        finC = self.Label(resframe, text = 'C: ')
+        finC = self.Label(self.resframe, text = 'C: ')
         finC.pack(side = 'left', padx = 10)
+        
+        
+        savebutton = self.Button(self.resframe, text = 'Save')
+        savebutton.pack(side = 'right')
         
         def run():
             values = [float(entry.get()) for entry in self.entries]
@@ -567,14 +585,23 @@ class fitbankwindow(fitbankbase):
             os.remove('activememory\\finfit.bak')
             finfit = FitFile('activememory\\finfit.fit')
             finrms.configure(text = f'rms: {finfit.rms}')
-            finA.configure(text = f'rms: {finfit.vardict["A"]}')
-            finB.configure(text = f'rms: {finfit.vardict["B"]}')
-            finC.configure(text = f'rms: {finfit.vardict["C"]}')
+            finA.configure(text = f'A: {finfit.vardict["A"]}')
+            finB.configure(text = f'B: {finfit.vardict["B"]}')
+            finC.configure(text = f'C: {finfit.vardict["C"]}')
             
         self.runbutton2.configure(command = run)
 
-
-                              
+class fitpolishwindow(fitbankwindow):
+    def __init__(self, root):
+        super().__init__(root)
+        self.fitdisp.destroy() 
+        self.compilebutton.destroy()     
+        viewbutton = self.Button(self.resframe, text = 'View')
+        viewbutton.pack(side = 'right')
+        def viewfit():
+            txtreadwindow(root, 'activememory\\finfit.fit')
+        viewbutton.configure(command = viewfit)
+                        
         
 class optionsframe(baseframe):
     def __init__(self, root, row = 1, column = 2):
