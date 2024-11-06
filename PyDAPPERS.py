@@ -20,7 +20,7 @@ with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
     
 
-
+# Kenneth wishlist: autosort peaklist, check upper and lower freq settings (seems to mess with fit finder) put view fits in run fits, number of lines in fits
 
 class baseframe:
     
@@ -223,6 +223,7 @@ class plotframe(baseframe):
             peaks, props = find_peaks(spe.ys, height = baseline, distance = 2, width = (1, 10))         
             peakplot = ax.vlines(spe.xs[peaks], 0, spe.ys[peaks], color = 'r')         
             peaknumdisplay.configure(text = f'Number of peaks: {len(peaks)}')
+            
             canvas.draw()
         def moveleft(event):
             xlim = ax.get_xlim()
@@ -507,7 +508,7 @@ class spfitframe(baseframe):
 
 class runfitswindow(fitbankbase):
     parpath = 'activememory\\fitstart.par'
-    treeheadings = ('A', 'B', 'C', 'rms', 'number')
+    treeheadings = ('A', 'B', 'C', 'rms', 'branch', 'number')
 
     def __init__(self, root):
         super().__init__(root)
@@ -527,7 +528,7 @@ class runfitswindow(fitbankbase):
                 os.remove(f'activememory\\basefitbank\\{fit[:-3]}bak')
                 reslist += [FitFile(f'activememory\\basefitbank\\{fit[:-3]}fit')]
             reslist.sort(key = lambda x: x.rms)
-            toshow = [(res.vardict['A'], res.vardict['B'], res.vardict['C'], res.rms, res.name.split('\\')[-1][:-4]) for res in reslist]
+            toshow = [(res.vardict['A'], res.vardict['B'], res.vardict['C'], res.rms, res.name.split('\\')[-1][:-4], len(res.assignments)) for res in reslist]
             for fit in toshow:
                 self.fitdisp.insert('', 'end', values = fit)
         self.runbutton2.configure(command = run)
