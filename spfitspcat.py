@@ -371,7 +371,7 @@ class FitFile:
                     self.vardict[key] = float(line.split()[3].split('(')[0])
             if 'EXP.FREQ.' in line:
                 break
-            if ': ' in line and 'Diverging' in line:
+            if ': ' in line and not 'Diverging' in line:
                 words = line.split()
                 jkk = words[1:7]
                 obs = float(words[7])
