@@ -20,7 +20,7 @@ with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
     
 
-# Kenneth wishlist: autosort peaklist, check upper and lower freq settings (seems to mess with fit finder) put view fits in run fits, number of lines in fits
+# Kenneth wishlist: check upper and lower freq settings (seems to mess with fit finder) put view fits in run fits
 
 class baseframe:
     
@@ -154,6 +154,9 @@ class peaklistframe(baseframe):
             shutil.copy(fil, 'activememory\\peaklist.txt')
             with open('activememory\\peaklist.txt', 'r') as f:
                 lines = f.readlines()
+            lines.sort(key = lambda x: float(x))
+            with open('activememory\\peaklist.txt', 'w') as f:
+                f.writelines(lines)
             peaknumdisplay.config(text = f'Number of Peaks: {len(lines)}')
          
         loadbutton = self.Button(frame, text = 'Load Peak List', 
@@ -508,7 +511,7 @@ class spfitframe(baseframe):
 
 class runfitswindow(fitbankbase):
     parpath = 'activememory\\fitstart.par'
-    treeheadings = ('A', 'B', 'C', 'rms', 'branch', 'number')
+    treeheadings = ('A', 'B', 'C', 'rms', 'progression', 'number of lines')
 
     def __init__(self, root):
         super().__init__(root)
