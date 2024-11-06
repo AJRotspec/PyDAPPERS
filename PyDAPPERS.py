@@ -20,70 +20,6 @@ with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
     
 
-# Kenneth wishlist: check upper and lower freq settings (seems to mess with fit finder) put view fits in run fits
-
-class baseframe:
-    
-    # Common functions
-    @staticmethod
-    def load_file(button_id, filefunc):
-        fil = filedialog.askopenfilename(title = f'Select File for Button {button_id}',
-                                         initialdir = defaultpath)
-        if fil:
-            filefunc(fil)
-                
-    
-    # Frames building
-    @staticmethod
-    def kwargsoverwriter(orig, newdefaults):
-        for kwarg in newdefaults:
-            if kwarg not in orig.keys():
-                orig[kwarg] = newdefaults[kwarg]
-        return orig
-
-    
-    maincolor = 'maroon'
-    titletextcolor = 'yellow'
-    titlefont = ('Helvetica', 16)
-    
-    titlekwargs = {'bg': maincolor,
-                   'fg': titletextcolor,
-                   'font': titlefont}
-    
-    def Title(self, *args, **kwargs):
-        return tk.Label(*args, **self.kwargsoverwriter(kwargs, self.titlekwargs))
-    
-    labelkwargs = {}
-    def Label(self, *args, **kwargs):
-        return tk.Label(*args, **self.kwargsoverwriter(kwargs, self.labelkwargs))
-               
-    entrykwargs = {}
-    def Entry(self, *args, **kwargs):
-        return tk.Entry(*args, **self.kwargsoverwriter(kwargs, self.entrykwargs))
-    
-    
-    mainfont = ('Helvetica', 14)
-    
-    buttonkwargs = {'bg': 'gold'}    
-    def Button(self, *args, **kwargs):
-        return tk.Button(*args, **self.kwargsoverwriter(kwargs, self.buttonkwargs))
-    
-    framekwargs = {'borderwidth': 1,
-                   'relief': 'solid',
-                   'bd': 1,
-                   'bg': 'light gray',
-                   'padx': 50,
-                   'pady': 0}
-    def Frame(self, *args, **kwargs):
-        return tk.Frame(*args, **self.kwargsoverwriter(kwargs, self.framekwargs))
-
-    checkbuttonkwargs = {}
-    def Checkbutton(self, *args, **kwargs):
-        return tk.Checkbutton(*args, **self.kwargsoverwriter(kwargs, self.checkbuttonkwargs))
-
-    textkwargs = {}
-    def Text(self, *args, **kwargs):
-        return tk.Text(*args, **self.kwargsoverwriter(kwargs, self.textkwargs))
 
 class fitbankbase(baseframe):
     def __init__(self, root):
@@ -388,9 +324,14 @@ class quantumfilterframe(baseframe):
     
         def branchselect():
             quantumfiltwindow(root, self)
+            
+        def updatebounds(event):
             global upperfreq, lowerfreq
             lowerfreq = float(self.lowerval.get())
             upperfreq = float(self.upperval.get())
+            with open('longtermmem\\bounds.txt', 'w') as f:
+                f.write(f'{lowerfreq}\n{upperfreq}')
+ 
 
         makebutton = self.Button(frame, text = 'Select Quantum Filter', 
                         command = branchselect)
@@ -398,8 +339,8 @@ class quantumfilterframe(baseframe):
         
         self.Label(frame, text = 'Frequency Limits (MHz):').grid(row = 2, column = 0)
         global lowerfreq, upperfreq
-        lowerfreq = 6000
-        upperfreq = 18000
+        with open('longtermmem\\bounds.txt', 'r') as f:
+            lowerfreq, upperfreq = tuple(map(float, f.readlines()))
         self.Label(frame, text = 'Lower').grid(row = 3, column = 0)
         self.lowerval = self.Entry(frame, width = 10)
         self.lowerval.grid(row = 3, column = 1)
@@ -408,6 +349,9 @@ class quantumfilterframe(baseframe):
         self.upperval = self.Entry(frame, width = 10)
         self.upperval.grid(row = 4, column = 1)
         self.upperval.insert(0, upperfreq)
+        self.lowerval.bind('<Return>', updatebounds)
+        self.upperval.bind('<Return>', updatebounds)
+
         
 class quantumfiltwindow(baseframe):
     def __init__(self, root, parentframe):
