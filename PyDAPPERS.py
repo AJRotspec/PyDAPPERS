@@ -544,6 +544,14 @@ class runfitswindow(fitbankbase):
                 shutil.copy(f'activememory\\basefitbank\\{fit}.fit', f'activememory\\finalfitbank\\{fit}.fit')
         sendtobankbutton = self.Button(self.fitswindow, text = 'Send Selected\nFits to Fitbank', command = send)
         sendtobankbutton.pack(side = 'bottom')
+        viewbutton = self.Button(self.fitswindow, text = 'View')
+        viewbutton.pack(side = 'right')
+        def viewfit():
+            toread = self.fitdisp.item(self.fitdisp.selection()[0], "values")[4]
+            txtreadwindow(root, f'activememory\\basefitbank\\{toread}.fit')
+        viewbutton.configure(command = viewfit)
+
+
 
 class fitbankwindow(fitbankbase):
     parpath = 'activememory\\finfit.par'
