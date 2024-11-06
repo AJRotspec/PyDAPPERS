@@ -20,6 +20,65 @@ with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
     
 
+class baseframe:
+    
+    # Common functions
+    @staticmethod
+    def load_file(button_id, filefunc):
+        fil = filedialog.askopenfilename(title = f'Select File for Button {button_id}',
+                                         initialdir = defaultpath)
+        if fil:
+            filefunc(fil)
+                
+    
+    # Frames building
+    @staticmethod
+    def kwargsoverwriter(orig, newdefaults):
+        for kwarg in newdefaults:
+            if kwarg not in orig.keys():
+                orig[kwarg] = newdefaults[kwarg]
+        return orig
+    
+    maincolor = 'maroon'
+    titletextcolor = 'yellow'
+    titlefont = ('Helvetica', 16)
+    
+    titlekwargs = {'bg': maincolor,
+                   'fg': titletextcolor,
+                   'font': titlefont}
+    
+    def Title(self, *args, **kwargs):
+        return tk.Label(*args, **self.kwargsoverwriter(kwargs, self.titlekwargs))
+    
+    labelkwargs = {}
+    def Label(self, *args, **kwargs):
+        return tk.Label(*args, **self.kwargsoverwriter(kwargs, self.labelkwargs))
+               
+    entrykwargs = {}
+    def Entry(self, *args, **kwargs):
+        return tk.Entry(*args, **self.kwargsoverwriter(kwargs, self.entrykwargs))
+    
+    
+    mainfont = ('Helvetica', 14)
+    
+    buttonkwargs = {'bg': 'gold'}    
+    def Button(self, *args, **kwargs):
+        return tk.Button(*args, **self.kwargsoverwriter(kwargs, self.buttonkwargs))
+    
+    framekwargs = {'borderwidth': 1,
+                   'relief': 'solid',
+                   'bd': 1,
+                   'bg': 'light gray',
+                   'padx': 50,
+                   'pady': 0}
+    def Frame(self, *args, **kwargs):
+        return tk.Frame(*args, **self.kwargsoverwriter(kwargs, self.framekwargs))
+    checkbuttonkwargs = {}
+    def Checkbutton(self, *args, **kwargs):
+        return tk.Checkbutton(*args, **self.kwargsoverwriter(kwargs, self.checkbuttonkwargs))
+    textkwargs = {}
+    def Text(self, *args, **kwargs):
+        return tk.Text(*args, **self.kwargsoverwriter(kwargs, self.textkwargs))
 
 class fitbankbase(baseframe):
     def __init__(self, root):
