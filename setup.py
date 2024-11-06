@@ -10,6 +10,10 @@ if not 'longtermmem' in os.listdir():
     os.mkdir('longtermmem')
     with open('longtermmem\\path.txt', 'w') as f:
         f.write('C:/')
+    with open('longtermmem\\abc.txt', 'w') as f:
+        f.write('30000\n2000\n1000')
+    with open('longtermmem\\bounds.txt', 'w') as f:
+        f.write('6000\n18000')
     os.mkdir('activememory')
     os.mkdir('activememory\\basefitbank')
     os.mkdir('activememory\\finalfitbank')
