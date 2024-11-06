@@ -77,11 +77,11 @@ class peaklistframe(baseframe):
         frame.grid(row = row, column = column)#, padx=60, pady=40)
         banner = self.Title(frame, text = 'Experimental Peak List')
         banner.pack(fill = 'x')#, padx = 50, pady=5)  
-        peaknumdisplay = self.Label(frame, text = 'Number of Peaks: NA', font =self.mainfont)
-        peaknumdisplay.pack(pady=10)
+        self.peaknumdisplay = self.Label(frame, text = 'Number of Peaks: NA', font =self.mainfont)
+        self.peaknumdisplay.pack(pady=10)
         
         def peakfinder(fil):
-            plotframe(root, fil)
+            plotframe(root, fil, self)
             
         findbutton = self.Button(frame, text = 'Use Peak Finder', 
                         command = lambda: self.load_file('Use Peak Finder', peakfinder))
@@ -94,7 +94,7 @@ class peaklistframe(baseframe):
             lines.sort(key = lambda x: float(x))
             with open('activememory\\peaklist.txt', 'w') as f:
                 f.writelines(lines)
-            peaknumdisplay.config(text = f'Number of Peaks: {len(lines)}')
+            self.peaknumdisplay.config(text = f'Number of Peaks: {len(lines)}')
          
         loadbutton = self.Button(frame, text = 'Load Peak List', 
                         command = lambda: self.load_file('Load Peak List', peakloader))
@@ -107,7 +107,7 @@ class peaklistframe(baseframe):
         viewbutton.pack(pady = 10)
     
 class plotframe(baseframe):
-    def __init__(self, root, filename):
+    def __init__(self, root, filename, homeframe):
         plotwindow = tk.Toplevel(root)
         plotwindow.title('Peak Picker')
         
@@ -248,7 +248,9 @@ class plotframe(baseframe):
             with open('activememory\\peaklist.txt', 'w') as f:
                 for peak in spe.xs[peaks]:
                     f.write(f'{peak}\n')
+            homeframe.peaknumdisplay.config(text = f'Number of Peaks: {len(peaks)}')
             plotwindow.destroy()
+            
         # Close button for the window
         closebutton = self.Button(pickframe, text="Close", command = close)
         closebutton.pack(pady=10)
