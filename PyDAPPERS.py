@@ -101,10 +101,11 @@ class fitbankbase(baseframe):
             self.entries += [self.Entry(inputframe)]
             self.entries[-1].pack(padx=10)
             
-        #putting in defaults for personal use
-        self.entries[0].insert(0, '3131')
-        self.entries[1].insert(0, '800')
-        self.entries[2].insert(0, '741')
+        #putting in defaults from longtermmem
+        with open('longtermmem\\abc.txt', 'r') as f:
+            ABCdef = f.readlines()
+        for ent, abc in zip(self.entries, ABCdef):
+            ent.insert(0, abc)
             
         def quartwind():
             pass
@@ -333,6 +334,10 @@ class catfileframe(baseframe):
         def catmaker():
             def save():
                 values = [float(entry.get()) for entry in entries]
+                with open('longtermmem\\abc.txt', 'w') as f:
+                    for val in values[:3]:
+                        f.write(str(val) + '\n')
+
                 varfil = ParVar('activememory\\base.var', propdict = {'pars':{'10000': (values[0], 1, 'A'),
                                                               '20000': (values[1], 1, 'B'),
                                                               '30000': (values[2], 1, 'C')}})
@@ -347,13 +352,18 @@ class catfileframe(baseframe):
             input_window.title('Generate .cat File')
             labels = []
             entries = []
-            for field in ['A', 'B', 'C', 'µa', 'µb', 'µc']:
+            with open('longtermmem\\abc.txt', 'r') as f:
+                defaults = f.readlines()
+
+            defaults += ['1', '1', '1']
+            for field, default in zip(['A', 'B', 'C', 'µa', 'µb', 'µc'], defaults):
                 
             # Add input field and button to new window
                 labels += [self.Label(input_window, text = f'{field}: ')]
                 labels[-1].pack(pady=10)
                 
                 entries += [self.Entry(input_window)]
+                entries[-1].insert(0, default)
                 entries[-1].pack(padx=10)
             
             save_button = self.Button(input_window, text="Save", command=save)
@@ -474,6 +484,7 @@ class searchfitsframe(baseframe):
         maxlength.grid(row = 5)
         
         def findfits():
+            
             windows = [float(entry.get()) for entry in entries]
             ff = fitfinder(*windows, proginuse, (lowerfreq, upperfreq))
             ff.writelins()
@@ -517,6 +528,9 @@ class runfitswindow(fitbankbase):
         super().__init__(root)
         def run():
             values = [float(entry.get()) for entry in self.entries]
+            with open('longtermmem\\abc.txt', 'w') as f:
+                for val in values:
+                    f.write(str(val) + '\n')
             parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], 1e3, 'A'),
                                                           '20000': (values[1], 1e3, 'B'),
                                                           '30000': (values[2], 1e3, 'C')}})
@@ -550,8 +564,6 @@ class runfitswindow(fitbankbase):
             toread = self.fitdisp.item(self.fitdisp.selection()[0], "values")[4]
             txtreadwindow(root, f'activememory\\basefitbank\\{toread}.fit')
         viewbutton.configure(command = viewfit)
-
-
 
 class fitbankwindow(fitbankbase):
     parpath = 'activememory\\finfit.par'
@@ -639,6 +651,10 @@ class fitbankwindow(fitbankbase):
         
         def run():
             values = [float(entry.get()) for entry in self.entries]
+            with open('longtermmem\\abc.txt', 'w') as f:
+                for val in values:
+                    f.write(str(val) + '\n')
+
             parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], 1e3, 'A'),
                                                           '20000': (values[1], 1e3, 'B'),
                                                           '30000': (values[2], 1e3, 'C')}})
@@ -659,15 +675,13 @@ class fitbankwindow(fitbankbase):
             txtreadwindow(root, self.parpath[:-3] + 'fit')
         viewbutton.configure(command = viewfit)
 
-
 class fitpolishwindow(fitbankwindow):
     parpath = 'activememory\\polishfit.par'
     def __init__(self, root):
         super().__init__(root)
         self.fitdisp.destroy() 
         self.compilebutton.destroy()     
-              
-        
+                      
 class optionsframe(baseframe):
     def __init__(self, root, row = 1, column = 2):
         frame = self.Frame(root)
