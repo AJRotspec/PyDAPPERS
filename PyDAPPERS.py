@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 """
 Created on Wed Oct 23 15:25:12 2024
 
@@ -18,7 +18,8 @@ import setup
     
 with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
-    
+
+version = '1.1'
 
 class baseframe:
     
@@ -721,7 +722,7 @@ class optionsframe(baseframe):
 
 
 root = tk.Tk()
-root.title('DAPPERS 2.0')
+root.title('PyDAPPERS ' + version)
 root.configure(background = 'black')
 
 peaklist = peaklistframe(root)
