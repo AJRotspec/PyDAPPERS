@@ -66,12 +66,15 @@ class baseframe:
     def Button(self, *args, **kwargs):
         return tk.Button(*args, **self.kwargsoverwriter(kwargs, self.buttonkwargs))
     
-    framekwargs = {'borderwidth': 1,
-                   'relief': 'solid',
+    framekwargs = {'borderwidth': 10,
+                   # 'relief': 'solid',
+                   'highlightbackground': 'black',
+                   'highlightthickness': 2,
                    'bd': 1,
                    'bg': 'light gray',
                    'padx': 50,
-                   'pady': 0}
+                   'pady': 0,
+                   }
     def Frame(self, *args, **kwargs):
         return tk.Frame(*args, **self.kwargsoverwriter(kwargs, self.framekwargs))
     checkbuttonkwargs = {}
@@ -134,7 +137,8 @@ class txtreadwindow(baseframe):
 class peaklistframe(baseframe):
     def __init__(self, root, row = 1, column = 0):
         frame = self.Frame(root)
-        frame.grid(row = row, column = column)#, padx=60, pady=40)
+        frame.grid(row = row, column = column, sticky = 'news')#, padx=60, pady=40)
+        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Experimental Peak List')
         banner.pack(fill = 'x')#, padx = 50, pady=5)  
         self.peaknumdisplay = self.Label(frame, text = 'Number of Peaks: NA', font =self.mainfont)
@@ -318,7 +322,8 @@ class plotframe(baseframe):
 class catfileframe(baseframe):
     def __init__(self, root, row = 2, column = 0):
         frame = self.Frame(root)
-        frame.grid(row = row, column = column)#, padx=10, pady=10)
+        frame.grid(row = row, column = column, sticky = 'nswe')#, padx=10, pady=10)
+        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Pickett .cat File')
         banner.pack(fill="x", pady=5)  
         def catloader(fil):
@@ -377,7 +382,8 @@ class catfileframe(baseframe):
 class quantumfilterframe(baseframe):
     def __init__(self, root, row = 3, column = 0):
         frame = self.Frame(root)
-        frame.grid(row = row, column = column)#, padx=10, pady=10)
+        frame.grid(row = row, column = column, sticky = 'nswe')#, padx=10, pady=10)
+        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Quantum Filter')
         banner.grid(row = 0, column = 0)
         self.filterdisplay = self.Label(frame, text = 'NA')
@@ -467,7 +473,9 @@ class quantumfiltwindow(baseframe):
 class searchfitsframe(baseframe):
     def __init__(self, root, row = 1, column = 1):
         frame = self.Frame(root)
-        frame.grid(row = row, column = column)#, padx=10, pady=10)
+        frame.grid(row = row, column = column, sticky = 'nswe', rowspan = 2)#, padx=10, pady=10)
+        frame.grid_propagate(False)
+
         banner = self.Title(frame, text = 'Search for Fits')
         # banner.pack(fill="x", pady=5)  
         banner.grid(row = 0, column = 0)
@@ -504,7 +512,8 @@ class searchfitsframe(baseframe):
 class spfitframe(baseframe):
     def __init__(self, root, row = 3, column = 1):
         frame = self.Frame(root)
-        frame.grid(row = row, column = column)#, padx=10, pady=10)
+        frame.grid(row = row, column = column, sticky = 'nsew')#, padx=10, pady=10)
+        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Run SPFIT')
         banner.pack(fill="x", pady=5)
         
@@ -691,7 +700,8 @@ class fitpolishwindow(fitbankwindow):
 class optionsframe(baseframe):
     def __init__(self, root, row = 1, column = 2):
         frame = self.Frame(root)
-        frame.grid(row = row, column = column)#, padx=10, pady=10)
+        frame.grid(row = row, column = column, rowspan = 3, sticky = 'nsew')#, padx=10, pady=10)
+        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Additional Options')
         banner.pack(fill="x", pady=5)  
         
@@ -725,12 +735,17 @@ root = tk.Tk()
 root.title('PyDAPPERS ' + version)
 root.configure(background = 'black')
 
+for i in range(3):
+    root.grid_columnconfigure(i, weight = 1)
+
 peaklist = peaklistframe(root)
 catfil = catfileframe(root)
 quantfilt = quantumfilterframe(root)
 searchfit = searchfitsframe(root)
 spfit = spfitframe(root)
 ops = optionsframe(root)
+
+
 
 def on_closing():
     try:
