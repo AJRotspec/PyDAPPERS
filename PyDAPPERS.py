@@ -15,6 +15,8 @@ from scipy.signal import find_peaks, savgol_filter
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import setup
+import logging
+ 
     
 with open('longtermmem\\path.txt', 'r') as f:
     defaultpath = f.read()
@@ -88,7 +90,7 @@ class fitbankbase(baseframe):
     def __init__(self, root):
         self.fitswindow = Toplevel(root)
         inputframe = self.Frame(self.fitswindow)
-        inputframe.pack(side = 'left', pady = 10)
+        inputframe.grid(row = 0, column = 0, rowspan = 2)
         self.labels = []
         self.entries = []
         for field in ['A', 'B', 'C']:
@@ -115,16 +117,18 @@ class fitbankbase(baseframe):
             pass
         sexts = self.Button(inputframe, text = 'Sextic Dist', command = sextwind)
         sexts.pack(pady = 10)
+        self.bottomframe = self.Frame(self.fitswindow)
+        self.bottomframe.grid(row = 1, column = 1)
         
-        self.runbutton2 = self.Button(self.fitswindow, text = 'Run')
-        self.runbutton2.pack(side = 'right')
-        treeframe = self.Frame(self.fitswindow)
-        treeframe.pack(side = 'left')
-        self.fitdisp = ttk.Treeview(treeframe, columns = self.treeheadings, show = 'headings')
+        self.runbutton2 = self.Button(self.bottomframe, text = 'Run')
+        self.runbutton2.pack(side = 'left')
+        self.treeframe = self.Frame(self.fitswindow)
+        self.treeframe.grid(row = 0, column = 1, sticky = 'ew')
+        self.fitdisp = ttk.Treeview(self.treeframe, columns = self.treeheadings, show = 'headings')
         for head in self.treeheadings:
             self.fitdisp.heading(head, text = head)
             self.fitdisp.column(head, width = 50, anchor = 'center')
-        self.fitdisp.pack(side = 'right')
+        self.fitdisp.pack(fill = 'x')
 
 class txtreadwindow(baseframe):
     def __init__(self, root, filename):
@@ -171,8 +175,7 @@ class peaklistframe(baseframe):
         viewbutton.grid(row = 2, column = 1, padx = 10, pady = 10)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
-
-    
+ 
 class plotframe(baseframe):
     def __init__(self, root, filename, homeframe):
         plotwindow = tk.Toplevel(root)
@@ -382,8 +385,7 @@ class catfileframe(baseframe):
         makebutton.grid(row = 1, column = 1)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
-
-        
+      
 class quantumfilterframe(baseframe):
     def __init__(self, root, row = 3, column = 0):
         frame = self.Frame(root)
@@ -409,24 +411,23 @@ class quantumfilterframe(baseframe):
                         command = branchselect)
         makebutton.grid(row = 1, column = 0)
         
-        self.Label(frame, text = 'Frequency Limits (MHz):').grid(row = 2, column = 0)
+        self.Label(frame, text = 'Frequency Limits (MHz):').grid(row = 2, column = 0, columnspan = 2)
         global lowerfreq, upperfreq
         with open('longtermmem\\bounds.txt', 'r') as f:
             lowerfreq, upperfreq = tuple(map(float, f.readlines()))
-        self.Label(frame, text = 'Lower').grid(row = 3, column = 0)
+        self.Label(frame, text = 'Lower').grid(row = 3, column = 0, sticky = 'e')
         self.lowerval = self.Entry(frame, width = 10)
-        self.lowerval.grid(row = 3, column = 1)
+        self.lowerval.grid(row = 3, column = 1, sticky = 'w')
         self.lowerval.insert(0, lowerfreq)
-        self.Label(frame, text = 'Upper').grid(row = 4, column = 0)
+        self.Label(frame, text = 'Upper').grid(row = 4, column = 0, sticky = 'e')
         self.upperval = self.Entry(frame, width = 10)
-        self.upperval.grid(row = 4, column = 1)
+        self.upperval.grid(row = 4, column = 1, sticky = 'w')
         self.upperval.insert(0, upperfreq)
         self.lowerval.bind('<Return>', updatebounds)
         self.upperval.bind('<Return>', updatebounds)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
-
-     
+   
 class quantumfiltwindow(baseframe):
     def __init__(self, root, parentframe):
         coldict = {'Ra': 'red', 'Rb': 'light green', 'Rc': 'blue',
@@ -515,8 +516,7 @@ class searchfitsframe(baseframe):
         findfitsbutton.grid(row = 4, column = 1)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
-
-        
+       
 class spfitframe(baseframe):
     def __init__(self, root, row = 3, column = 1):
         frame = self.Frame(root)
@@ -544,7 +544,6 @@ class spfitframe(baseframe):
         polishbutton.grid(row = 1, column = 2)
         for i in range(3):
             frame.grid_columnconfigure(i, weight=1)  
-
 
 class runfitswindow(fitbankbase):
     parpath = 'activememory\\fitstart.par'
@@ -582,9 +581,9 @@ class runfitswindow(fitbankbase):
                 self.fitdisp.delete(item)                
             for fit in tosend:
                 shutil.copy(f'activememory\\basefitbank\\{fit}.fit', f'activememory\\finalfitbank\\{fit}.fit')
-        sendtobankbutton = self.Button(self.fitswindow, text = 'Send Selected\nFits to Fitbank', command = send)
-        sendtobankbutton.pack(side = 'bottom')
-        viewbutton = self.Button(self.fitswindow, text = 'View')
+        sendtobankbutton = self.Button(self.bottomframe, text = 'Send Selected\nFits to Fitbank', command = send)
+        sendtobankbutton.pack(side = 'right')
+        viewbutton = self.Button(self.bottomframe, text = 'View')
         viewbutton.pack(side = 'right')
         def viewfit():
             toread = self.fitdisp.item(self.fitdisp.selection()[0], "values")[4]
@@ -607,11 +606,13 @@ class fitbankwindow(fitbankbase):
             for item in self.fitdisp.selection():
                 lin.assign(allfits[int(self.fitdisp.item(item, 'values')[-1])].assignments)
             lin.makefile()
-        self.compilebutton = self.Button(self.fitswindow, text = 'Compile Selected Fits', command = comp)
+        self.compilebutton = self.Button(self.bottomframe, text = 'Compile Selected Fits', command = comp)
         self.compilebutton.pack(side = 'bottom')
             
         self.resframe = self.Frame(self.fitswindow)
-        self.resframe.pack(side = 'bottom',  fill = 'x')
+        self.resframe.grid(row = 1, column = 2)
+        self.treeframe.grid_configure(columnspan = 2)
+        
 
         finrms = self.Label(self.resframe, text = 'rms: ')
         finrms.pack(side = 'left', padx = 10)
