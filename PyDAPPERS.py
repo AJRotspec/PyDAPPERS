@@ -431,7 +431,7 @@ class quantumfiltwindow(baseframe):
     def __init__(self, root, parentframe):
         coldict = {'Ra': 'red', 'Rb': 'light green', 'Rc': 'blue',
                    'Qa': 'pink', 'Qb': 'cyan', 'Qc': 'purple',
-                   'Pa': 'gray', 'Pb': 'gray', 'Pc': 'gray'}
+                   'Pa': 'light coral', 'Pb': 'PaleGreen4', 'Pc': 'SkyBlue3'}
         progdict = {'Ra': ['J0J', 'J1J-', 'J1J+', 'J2J-', 'J2J+'],
                     'Rb': ['J1J', 'J0J', '220', '221', '330', '331'],
                     'Rc': ['110', 'J0J', '221', '220', '331', '330'],
