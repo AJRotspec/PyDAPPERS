@@ -66,13 +66,13 @@ class baseframe:
     def Button(self, *args, **kwargs):
         return tk.Button(*args, **self.kwargsoverwriter(kwargs, self.buttonkwargs))
     
-    framekwargs = {'borderwidth': 10,
+    framekwargs = {#'borderwidth': 10,
                    # 'relief': 'solid',
                    'highlightbackground': 'black',
                    'highlightthickness': 2,
                    'bd': 1,
                    'bg': 'light gray',
-                   'padx': 50,
+                   'padx': 0,
                    'pady': 0,
                    }
     def Frame(self, *args, **kwargs):
@@ -138,18 +138,18 @@ class peaklistframe(baseframe):
     def __init__(self, root, row = 1, column = 0):
         frame = self.Frame(root)
         frame.grid(row = row, column = column, sticky = 'news')#, padx=60, pady=40)
-        frame.grid_propagate(False)
+        # frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Experimental Peak List')
-        banner.pack(fill = 'x')#, padx = 50, pady=5)  
+        banner.grid(row = 0, column = 0, sticky = 'we', columnspan = 2)#, padx = 50, pady=5)  
         self.peaknumdisplay = self.Label(frame, text = 'Number of Peaks: NA', font =self.mainfont)
-        self.peaknumdisplay.pack(pady=10)
+        self.peaknumdisplay.grid(row = 2, column = 0, padx = 10, pady = 10)
         
         def peakfinder(fil):
             plotframe(root, fil, self)
             
         findbutton = self.Button(frame, text = 'Use Peak Finder', 
                         command = lambda: self.load_file('Use Peak Finder', peakfinder))
-        findbutton.pack(pady = 10)
+        findbutton.grid(row = 1, column = 0, padx = 10, pady = 10)
         
         def peakloader(fil):
             shutil.copy(fil, 'activememory\\peaklist.txt')
@@ -162,13 +162,16 @@ class peaklistframe(baseframe):
          
         loadbutton = self.Button(frame, text = 'Load Peak List', 
                         command = lambda: self.load_file('Load Peak List', peakloader))
-        loadbutton.pack(pady = 10)
+        loadbutton.grid(row = 1, column = 1, padx = 10, pady = 10)
         
         viewbutton = self.Button(frame, text = 'View Peaklist')
         def viewpeaks():
             txtreadwindow(root, 'activememory\\peaklist.txt')
         viewbutton.configure(command = viewpeaks)
-        viewbutton.pack(pady = 10)
+        viewbutton.grid(row = 2, column = 1, padx = 10, pady = 10)
+        for i in range(2):
+            frame.grid_columnconfigure(i, weight=1)  
+
     
 class plotframe(baseframe):
     def __init__(self, root, filename, homeframe):
@@ -323,15 +326,14 @@ class catfileframe(baseframe):
     def __init__(self, root, row = 2, column = 0):
         frame = self.Frame(root)
         frame.grid(row = row, column = column, sticky = 'nswe')#, padx=10, pady=10)
-        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Pickett .cat File')
-        banner.pack(fill="x", pady=5)  
+        banner.grid(row = 0, column = 0, sticky = 'ew', columnspan = 2)#, padx = 50, pady=5)  
         def catloader(fil):
             shutil.copy(fil, 'activememory\\base.cat')
          
         loadbutton = self.Button(frame, text = 'Load Cat File', 
                         command = lambda: self.load_file('Load .cat File', catloader))
-        loadbutton.pack(pady = 10)
+        loadbutton.grid(row = 1, column = 0)
         
     
         def catmaker():
@@ -377,15 +379,17 @@ class catfileframe(baseframe):
                         command = catmaker)
         # makebutton = tk.Button(frame, text = 'Generate .cat File', 
         #                 command = lambda: input_window(root, 'Generate .cat File', ['A', 'B', 'C', 'µa', 'µb', 'µc'], catmakersave), **self.buttonkwargs)
-        makebutton.pack(pady = 10)
+        makebutton.grid(row = 1, column = 1)
+        for i in range(2):
+            frame.grid_columnconfigure(i, weight=1)  
+
         
 class quantumfilterframe(baseframe):
     def __init__(self, root, row = 3, column = 0):
         frame = self.Frame(root)
         frame.grid(row = row, column = column, sticky = 'nswe')#, padx=10, pady=10)
-        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Quantum Filter')
-        banner.grid(row = 0, column = 0)
+        banner.grid(row = 0, column = 0, columnspan = 2, sticky = 'ew')
         self.filterdisplay = self.Label(frame, text = 'NA')
         self.filterdisplay.grid(row = 1, column = 1)
     
@@ -419,8 +423,10 @@ class quantumfilterframe(baseframe):
         self.upperval.insert(0, upperfreq)
         self.lowerval.bind('<Return>', updatebounds)
         self.upperval.bind('<Return>', updatebounds)
+        for i in range(2):
+            frame.grid_columnconfigure(i, weight=1)  
 
-        
+     
 class quantumfiltwindow(baseframe):
     def __init__(self, root, parentframe):
         coldict = {'Ra': 'red', 'Rb': 'light green', 'Rc': 'blue',
@@ -474,11 +480,10 @@ class searchfitsframe(baseframe):
     def __init__(self, root, row = 1, column = 1):
         frame = self.Frame(root)
         frame.grid(row = row, column = column, sticky = 'nswe', rowspan = 2)#, padx=10, pady=10)
-        frame.grid_propagate(False)
 
         banner = self.Title(frame, text = 'Search for Fits')
         # banner.pack(fill="x", pady=5)  
-        banner.grid(row = 0, column = 0)
+        banner.grid(row = 0, column = 0, columnspan = 2, sticky = 'ew')
         
         labels = []
         entries = []
@@ -508,6 +513,9 @@ class searchfitsframe(baseframe):
         findfitsbutton = self.Button(frame, text = 'Find Fits',
                                    command = findfits)
         findfitsbutton.grid(row = 4, column = 1)
+        for i in range(2):
+            frame.grid_columnconfigure(i, weight=1)  
+
         
 class spfitframe(baseframe):
     def __init__(self, root, row = 3, column = 1):
@@ -515,25 +523,28 @@ class spfitframe(baseframe):
         frame.grid(row = row, column = column, sticky = 'nsew')#, padx=10, pady=10)
         frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Run SPFIT')
-        banner.pack(fill="x", pady=5)
+        banner.grid(row = 0, column = 0, columnspan = 3, sticky = 'ew')
         
         def runfits():
             runfitswindow(root)
         runbutton = self.Button(frame, text = 'Run Fits', 
                               command = runfits)
-        runbutton.pack(side = 'left', padx = 10)        
+        runbutton.grid(row = 1, column = 0)    
 
         def fitbank():
             fitbankwindow(root)
         bankbutton = self.Button(frame, text = 'Fit Bank', 
                               command = fitbank)
-        bankbutton.pack(side = 'left', padx = 10)        
+        bankbutton.grid(row = 1, column = 1)     
 
         def fitpolish():
             fitpolishwindow(root)
         polishbutton = self.Button(frame, text = 'Fit Polish', 
                               command = fitpolish)
-        polishbutton.pack(side = 'left', padx = 10)        
+        polishbutton.grid(row = 1, column = 2)
+        for i in range(3):
+            frame.grid_columnconfigure(i, weight=1)  
+
 
 class runfitswindow(fitbankbase):
     parpath = 'activememory\\fitstart.par'
@@ -701,24 +712,23 @@ class optionsframe(baseframe):
     def __init__(self, root, row = 1, column = 2):
         frame = self.Frame(root)
         frame.grid(row = row, column = column, rowspan = 3, sticky = 'nsew')#, padx=10, pady=10)
-        frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Additional Options')
-        banner.pack(fill="x", pady=5)  
+        banner.grid(row = 0, column = 0, columnspan = 2, sticky = 'ew')
         
         def setdefault():
             pass
         defbutton = self.Button(frame, text = 'Set Default', command = setdefault)
-        defbutton.pack(pady = 5)
+        defbutton.grid(row = 1, column = 0)
 
         def fullreset():
             pass
         resbutton = self.Button(frame, text = 'Full Reset', command = fullreset)
-        resbutton.pack(pady = 5)
+        resbutton.grid(row = 2, column = 0)
 
         def Help():
             pass
         helpbutton = self.Button(frame, text = 'Help', command = Help)
-        helpbutton.pack(pady = 5)
+        helpbutton.grid(row = 1, column = 1)
 
         def setpath():
             global defaultpath
@@ -728,15 +738,14 @@ class optionsframe(baseframe):
                 f.write(defaultpath)
 
         pathbutton = self.Button(frame, text = 'Set Path', command = setpath)
-        pathbutton.pack(pady = 5)
+        pathbutton.grid(row = 2, column = 1)
+        for i in range(2):
+            frame.grid_columnconfigure(i, weight=1)  
 
 
 root = tk.Tk()
 root.title('PyDAPPERS ' + version)
 root.configure(background = 'black')
-
-for i in range(3):
-    root.grid_columnconfigure(i, weight = 1)
 
 peaklist = peaklistframe(root)
 catfil = catfileframe(root)
@@ -744,6 +753,9 @@ quantfilt = quantumfilterframe(root)
 searchfit = searchfitsframe(root)
 spfit = spfitframe(root)
 ops = optionsframe(root)
+
+# for i in range(3):
+#     root.grid_columnconfigure(i, weight = 1)
 
 
 
