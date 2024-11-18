@@ -560,9 +560,9 @@ class searchfitsframe(baseframe):
         def findfits():
             
             windows = [float(entry.get()) for entry in entries]
-            ff = fitfinder(*windows, proginuse, (lowerfreq, upperfreq))
-            ff.writelins()
-            maxlength.configure(text = f'Max length: {ff.maxpath}')
+            self.ff = fitfinder(*windows, proginuse, (lowerfreq, upperfreq))
+            self.ff.writelins()
+            maxlength.configure(text = f'Max length: {self.ff.maxpath}')
             
                 
         findfitsbutton = self.Button(frame, text = 'Find Fits',
@@ -745,10 +745,10 @@ class fitbankwindow(fitbankbase):
             with open('longtermmem\\abc.txt', 'w') as f:
                 for val in values:
                     f.write(str(val) + '\n')
-
-            parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], unc[0], 'A'),
-                                                          '20000': (values[1], unc[1], 'B'),
-                                                          '30000': (values[2], unc[2], 'C')}})
+            
+            self.parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], uncs[0], 'A'),
+                                                          '20000': (values[1], uncs[1], 'B'),
+                                                          '30000': (values[2], uncs[2], 'C')}})
             for dist, items in self.dists.items():
                 if items[0]:
                     if items[1]:
@@ -757,7 +757,7 @@ class fitbankwindow(fitbankbase):
                         unc = 1e3
                     self.parfil.pars[items[3]] = (-items[2], unc, '-' + dist)
 
-            parfil.makefile()                
+            self.parfil.makefile()                
             call(['Rot\\spfit', self.parpath],
                  stdout = DEVNULL, shell = True)
             os.remove(self.parpath[:-3] + 'bak')
