@@ -87,7 +87,7 @@ class baseframe:
         return tk.Text(*args, **self.kwargsoverwriter(kwargs, self.textkwargs))
 
 class distwind(baseframe):
-    def __init__(self, root):
+    def __init__(self, root, parent):
         self.window = Toplevel(root)
         self.window.title('Distortion Constants')
         self.Label(self.window, text = 'Constant').grid(row = 0, column = 0)
@@ -116,8 +116,11 @@ class distwind(baseframe):
         self.cancel = self.Button(self.window, text = 'Cancel')
         self.cancel.grid(row = i + 2, column = 2, columnspan = 2)
         def applyfunc():
-            usedict = {key: tuple(map(lambda x: x.get(), item)) for key, item in self.toggles.items()}
-            self.window.destroy()            
+            usedict = {key: list(map(lambda x: x.get(), item)) for key, item in self.toggles.items()}
+            for param, entry, code in zip(self.params, self.entries, self.codes):
+                usedict[param] += [float(entry.get()), code]
+            parent.dists.update(usedict)
+            self.window.destroy()    
         self.apply.configure(command = applyfunc)
         def cancelfunc():
             self.window.destroy()            
@@ -126,6 +129,7 @@ class distwind(baseframe):
 class fitbankbase(baseframe):
     def __init__(self, root):
         self.fitswindow = Toplevel(root)
+        self.dists = {}
         inputframe = self.Frame(self.fitswindow)
         inputframe.grid(row = 0, column = 0, rowspan = 2)
         self.labels = []
@@ -153,11 +157,13 @@ class fitbankbase(baseframe):
             ABCdef = f.readlines()
         for ent, abc in zip(self.entries, ABCdef):
             ent.insert(0, abc)
-            
+
         def quarts():
             class quartwind(distwind):
-                params = ['DeltaJ', 'DeltaJK', 'DeltaK']
-            quartwind(root)
+                params = ['DeltaJ', 'DeltaJK', 'DeltaK', 'deltaJ', 'deltaK']
+                codes = ['200', '1100', '2000', '40100', '41000']
+            quartwind(root, self)
+            
         quarts = self.Button(inputframe, text = 'Quartic Dist', command = quarts)
         quarts.grid(row = 4, column = 0, columnspan = 3, pady = 15)
 
@@ -609,6 +615,15 @@ class runfitswindow(fitbankbase):
             self.parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], uncs[0], 'A'),
                                                           '20000': (values[1], uncs[1], 'B'),
                                                           '30000': (values[2], uncs[2], 'C')}})
+            
+            for dist, items in self.dists.items():
+                if items[0]:
+                    if items[1]:
+                        unc = 1e-3
+                    else:
+                        unc = 1e3
+                    self.parfil.pars[items[3]] = (-items[2], unc, '-' + dist)
+                
             self.parfil.makefile()                
             fitlist = [f for f in os.listdir('activememory\\basefitbank\\') if f.endswith('lin') and proginuse in f]
             reslist = []
@@ -723,18 +738,17 @@ class fitbankwindow(fitbankbase):
             basename.bind('<Return>', finsave)
         savebutton.configure(command = save)
         
-                
-        
-        
         def run():
             values = [float(entry.get()) for entry in self.entries]
+            uncs = [1e-3 if fix.get() else 1e3 for fix in self.toggles]            
+
             with open('longtermmem\\abc.txt', 'w') as f:
                 for val in values:
                     f.write(str(val) + '\n')
 
-            parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], 1e3, 'A'),
-                                                          '20000': (values[1], 1e3, 'B'),
-                                                          '30000': (values[2], 1e3, 'C')}})
+            parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], unc[0], 'A'),
+                                                          '20000': (values[1], unc[1], 'B'),
+                                                          '30000': (values[2], unc[2], 'C')}})
             parfil.makefile()                
             call(['Rot\\spfit', self.parpath],
                  stdout = DEVNULL, shell = True)
