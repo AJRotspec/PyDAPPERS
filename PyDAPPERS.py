@@ -86,6 +86,43 @@ class baseframe:
     def Text(self, *args, **kwargs):
         return tk.Text(*args, **self.kwargsoverwriter(kwargs, self.textkwargs))
 
+class distwind(baseframe):
+    def __init__(self, root):
+        self.window = Toplevel(root)
+        self.window.title('Distortion Constants')
+        self.Label(self.window, text = 'Constant').grid(row = 0, column = 0)
+        self.Label(self.window, text = 'Value').grid(row = 0, column = 1)
+        self.Label(self.window, text = 'Include').grid(row = 0, column = 2)
+        self.Label(self.window, text = 'Fix').grid(row = 0, column = 3)
+
+        self.entries = []
+        self.onoffs = []
+        self.fixes = []
+        self.toggles = {}
+        for i, param in enumerate(self.params):
+            self.Label(self.window, text = param).grid(row = i + 1, column = 0)
+            self.entries += [self.Entry(self.window)]
+            self.entries[-1].grid(row = i + 1, column = 1)
+            self.entries[-1].insert(0, '0.0')
+            use = tk.BooleanVar()
+            self.onoffs += [self.Checkbutton(self.window, variable = use)]
+            self.onoffs[-1].grid(row = i + 1, column = 2)
+            fix = tk.BooleanVar()
+            self.fixes += [self.Checkbutton(self.window, variable = fix)]
+            self.fixes[-1].grid(row = i + 1, column = 3)
+            self.toggles[param] = (use, fix)
+        self.apply = self.Button(self.window, text = 'Apply')
+        self.apply.grid(row = i + 2, column = 0, columnspan = 2)
+        self.cancel = self.Button(self.window, text = 'Cancel')
+        self.cancel.grid(row = i + 2, column = 2, columnspan = 2)
+        def applyfunc():
+            usedict = {key: tuple(map(lambda x: x.get(), item)) for key, item in self.toggles.items()}
+            self.window.destroy()            
+        self.apply.configure(command = applyfunc)
+        def cancelfunc():
+            self.window.destroy()            
+        self.cancel.configure(command = cancelfunc)
+        
 class fitbankbase(baseframe):
     def __init__(self, root):
         self.fitswindow = Toplevel(root)
@@ -93,14 +130,23 @@ class fitbankbase(baseframe):
         inputframe.grid(row = 0, column = 0, rowspan = 2)
         self.labels = []
         self.entries = []
-        for field in ['A', 'B', 'C']:
+        self.Label(inputframe, text = 'Constant').grid(row = 0, column = 0)
+        self.Label(inputframe, text = 'Value').grid(row = 0, column = 1)
+        self.Label(inputframe, text = 'Fix').grid(row = 0, column = 2)
+        self.fixes = []
+        self.toggles = []
+        for i, field in enumerate(['A', 'B', 'C']):
             
         # Add input field and button to new window
             self.labels += [self.Label(inputframe, text = f'{field} (MHz): ')]
-            self.labels[-1].pack(pady=10)
+            self.labels[-1].grid(row = i + 1, column = 0, pady = 15)
             
             self.entries += [self.Entry(inputframe)]
-            self.entries[-1].pack(padx=10)
+            self.entries[-1].grid(row = i + 1, column = 1)
+            fix = tk.BooleanVar()
+            self.fixes += [self.Checkbutton(inputframe, variable = fix)]
+            self.fixes[-1].grid(row = i + 1, column = 3)
+            self.toggles += [fix]
             
         #putting in defaults from longtermmem
         with open('longtermmem\\abc.txt', 'r') as f:
@@ -108,15 +154,17 @@ class fitbankbase(baseframe):
         for ent, abc in zip(self.entries, ABCdef):
             ent.insert(0, abc)
             
-        def quartwind():
-            pass
-        quarts = self.Button(inputframe, text = 'Quartic Dist', command = quartwind)
-        quarts.pack(pady = 10)
+        def quarts():
+            class quartwind(distwind):
+                params = ['DeltaJ', 'DeltaJK', 'DeltaK']
+            quartwind(root)
+        quarts = self.Button(inputframe, text = 'Quartic Dist', command = quarts)
+        quarts.grid(row = 4, column = 0, columnspan = 3, pady = 15)
 
         def sextwind():
             pass
         sexts = self.Button(inputframe, text = 'Sextic Dist', command = sextwind)
-        sexts.pack(pady = 10)
+        sexts.grid(row = 5, column = 0, columnspan = 3)
         self.bottomframe = self.Frame(self.fitswindow)
         self.bottomframe.grid(row = 1, column = 1)
         
@@ -516,7 +564,7 @@ class searchfitsframe(baseframe):
         findfitsbutton.grid(row = 4, column = 1)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
-       
+        
 class spfitframe(baseframe):
     def __init__(self, root, row = 3, column = 1):
         frame = self.Frame(root)
@@ -553,13 +601,15 @@ class runfitswindow(fitbankbase):
         super().__init__(root)
         def run():
             values = [float(entry.get()) for entry in self.entries]
+            uncs = [1e-3 if fix.get() else 1e3 for fix in self.toggles]            
+            # fixes = 
             with open('longtermmem\\abc.txt', 'w') as f:
                 for val in values:
                     f.write(str(val) + '\n')
-            parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], 1e3, 'A'),
-                                                          '20000': (values[1], 1e3, 'B'),
-                                                          '30000': (values[2], 1e3, 'C')}})
-            parfil.makefile()                
+            self.parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], uncs[0], 'A'),
+                                                          '20000': (values[1], uncs[1], 'B'),
+                                                          '30000': (values[2], uncs[2], 'C')}})
+            self.parfil.makefile()                
             fitlist = [f for f in os.listdir('activememory\\basefitbank\\') if f.endswith('lin') and proginuse in f]
             reslist = []
             for fit in fitlist:
