@@ -120,24 +120,65 @@ class Spectrum:
         return idx
 
 class Transition:
+    maxJ = 100
+    progressions = {'Ra J0J':[[i + 1, 0, i + 1, i, 0, i] for i in range(maxJ)],
+                    'Ra J1J-':[[i + 1, 1, i + 1, i, 1, i] for i in range(maxJ)],
+                    'Ra J1J+':[[i + 2, 1, i + 1, i + 1, 1, i] for i in range(maxJ)],
+                    'Ra J2J-':[[i + 2, 2, i + 1, i + 1, 2, i] for i in range(maxJ)],
+                    'Ra J2J+':[[i + 3, 2, i + 2, i + 2, 2, i] for i in range(maxJ)],
+                    'Rb J1J': [[i + 1, 1, i + 1, i, 0, i] for i in range(maxJ)],
+                    'Rb J0J': [[i + 1, 0, i + 1, i, 1, i] for i in range(maxJ)],
+                    'Rb 220': [[i + 2, 2, i, i + 1, 1, i + 1] for i in range(maxJ)],
+                    'Rb 221': [[i + 2, 2, i + 1, i + 1, 1, i] for i in range(maxJ)],
+                    'Rb 330': [[i + 3, 3, i, i + 2, 2, i + 1] for i in range(maxJ)],
+                    'Rb 331': [[i + 3, 3, i + 1, i + 2, 2, i] for i in range(maxJ)],
+                    'Rc 110': [[i + 1, 1, i, i, 0, i] for i in range(maxJ)],
+                    'Rc J0J': [[i + 2, 0, i + 2, i + 1, 1, i] for i in range(maxJ)],
+                    'Rc 221': [[i + 2, 2, i + 1, i + 1, 1, i + 1] for i in range(maxJ)],
+                    'Rc 220': [[i + 2, 2, i, i + 1, 1, i] for i in range(maxJ)],
+                    'Rc 331': [[i + 3, 3, i + 1, i + 2, 2, i + 1] for i in range(maxJ)],
+                    'Rc 330': [[i + 3, 3, i, i + 2, 2, i] for i in range(maxJ)],
+                    'Qa 221': [[i + 2, 2, i + 1, i + 2, 0, i + 2] for i in range(maxJ)],
+                    'Qa 330': [[i + 3, 3, i, i + 3, 1, i + 3] for i in range(maxJ)],
+                    'Qa 331': [[i + 3, 3, i + 1, i + 3, 1, i + 2] for i in range(maxJ)],
+                    'Qa 440': [[i + 4, 4, i, i + 4, 2, i + 3] for i in range(maxJ)],
+                    'Qa 441': [[i + 4, 4, i + 1, i + 4, 2, i + 2] for i in range(maxJ)],
+                    'Qa JKJ-JK': [[i + 1, 1, i, i + 1, 1, i + 1] for i in range(maxJ)],
+                    'Qb 220': [[i + 2, 2, i, i + 2, 1, i + 1] for i in range(maxJ)],
+                    'Qb 221': [[i + 2, 2, i + 1, i + 2, 1, i + 2] for i in range(maxJ)],
+                    'Qb 330': [[i + 3, 3, i, i + 3, 2, i + 1] for i in range(maxJ)],
+                    'Qb 331': [[i + 3, 3, i + 1, i + 3, 2, i + 2] for i in range(maxJ)],
+                    'Qb 440': [[i + 4, 4, i, i + 4, 3, i + 1] for i in range(maxJ)],
+                    'Qb 441': [[i + 4, 4, i + 1, i + 4, 3, i + 2] for i in range(maxJ)],
+                    'Qc 220': [[i + 2, 2, i, i + 2, 1, i + 2] for i in range(maxJ)],
+                    'Qc 221': [[i + 2, 2, i + 1, i + 2, 1, i + 1] for i in range(maxJ)],
+                    'Qc 330': [[i + 3, 3, i, i + 3, 2, i + 2] for i in range(maxJ)],
+                    'Qc 331': [[i + 3, 3, i + 1, i + 3, 2, i + 1] for i in range(maxJ)],
+                    'Qc 440': [[i + 4, 4, i, i + 4, 3, i + 2] for i in range(maxJ)],
+                    'Qc 441': [[i + 4, 4, i + 1, i + 4, 3, i + 1] for i in range(maxJ)],
+                    'Pa 220': [[i + 2, 2, i, i + 3, 0, i + 3] for i in range(maxJ)],
+                    'Pa 330': [[i + 3, 3, i, i + 4, 1, i + 3] for i in range(maxJ)],
+                    'Pa 331': [[i + 3, 3, i + 1, i + 4, 1, i + 4] for i in range(maxJ)],
+                    'Pa 440': [[i + 4, 4, i, i + 5, 2, i + 3] for i in range(maxJ)],
+                    'Pa 441': [[i + 4, 4, i + 1, i + 5, 2, i + 4] for i in range(maxJ)],
+                    'Pb 220': [[i + 2, 2, i, i + 3, 1, i + 3] for i in range(maxJ)],
+                    'Pb 221': [[i + 2, 2, i + 1, i + 3, 1, i + 2] for i in range(maxJ)],
+                    'Pb 330': [[i + 3, 3, i, i + 4, 2, i + 3] for i in range(maxJ)],
+                    'Pb 331': [[i + 3, 3, i + 1, i + 4, 2, i + 2] for i in range(maxJ)],
+                    'Pb 440': [[i + 4, 4, i, i + 5, 3, i + 3] for i in range(maxJ)],
+                    'Pb 441': [[i + 4, 4, i + 1, i + 5, 3, i + 2] for i in range(maxJ)],
+                    'Pc 220': [[i + 2, 2, i, i + 3, 1, i + 2] for i in range(maxJ)],
+                    'Pc 221': [[i + 2, 2, i + 1, i + 3, 1, i + 3] for i in range(maxJ)],
+                    'Pc 330': [[i + 3, 3, i, i + 4, 2, i + 2] for i in range(maxJ)],
+                    'Pc 331': [[i + 3, 3, i + 1, i + 4, 2, i + 3] for i in range(maxJ)],
+                    'Pc 440': [[i + 4, 4, i, i + 5, 3, i + 2] for i in range(maxJ)],
+                    'Pc 441': [[i + 4, 4, i + 1, i + 5, 3, i + 3] for i in range(maxJ)]
+                    }
+
     HF = False
     states = False
     catlines = False
-    maxJ = 30
-    progressions = {'aJ0J':[[i + 1, 0 , i + 1, i, 0, i] for i in range(maxJ)],
-                    'aJ1J-':[[i + 1, 1 , i + 1, i, 1, i] for i in range(maxJ)],
-                    'aJ1J+':[[i + 2, 1 , i + 1, i + 1, 1, i] for i in range(maxJ)],
-                    'aJ2J-':[[i + 2, 2 , i + 1, i + 1, 2, i] for i in range(maxJ)],
-                    'aJ2J+':[[i + 3, 2 , i + 2, i + 2, 2, i] for i in range(maxJ)],
-                    'bJ1J': [[i + 1, 1 , i + 1, i, 0, i] for i in range(maxJ)],
-                    'bJ0J': [[i + 1, 0 , i + 1, i, 1, i] for i in range(maxJ)],
-                    'b220': [[i + 2, 2 , i, i + 1, 1, i + 1] for i in range(maxJ)],
-                    'b221': [[i + 2, 2 , i + 1, i + 1, 1, i] for i in range(maxJ)],
-                    'c110': [[i + 1, 1 , i, i, 0, i] for i in range(maxJ)],
-                    'cJ0J': [[i + 2, 0 , i + 2, i + 1, 1, i] for i in range(maxJ)],
-                    'c221': [[i + 2, 2 , i + 1, i + 1, 1, i + 1] for i in range(maxJ)],
-                    'c220': [[i + 2, 2 , i, i + 1, 1, i] for i in range(maxJ)]}
-    
+    maxJ = 70
     def __init__(self, j1, j2, catargs = False):
         self.j1 = j1
         self.j2 = j2
@@ -317,7 +358,10 @@ class CatFile:
         self.transes = []
         with open(filename, 'r') as f:
             for line in f.readlines():
-                self.transes += [Transition.fromcatline(line)]
+                try:
+                    self.transes += [Transition.fromcatline(line)]
+                except:
+                    print(line)
         self.transes.sort(key = lambda x: x.pred)
         
     def points(self, a, b):
