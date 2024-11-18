@@ -749,6 +749,14 @@ class fitbankwindow(fitbankbase):
             parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], unc[0], 'A'),
                                                           '20000': (values[1], unc[1], 'B'),
                                                           '30000': (values[2], unc[2], 'C')}})
+            for dist, items in self.dists.items():
+                if items[0]:
+                    if items[1]:
+                        unc = 1e-3
+                    else:
+                        unc = 1e3
+                    self.parfil.pars[items[3]] = (-items[2], unc, '-' + dist)
+
             parfil.makefile()                
             call(['Rot\\spfit', self.parpath],
                  stdout = DEVNULL, shell = True)
