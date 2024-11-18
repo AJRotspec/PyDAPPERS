@@ -284,7 +284,7 @@ class ParVar:
             for arg in propdict.keys():
                 self.__dict__[arg] = propdict[arg]
             self.idlines = 'test                                                  Wed Oct 23 14:31:43 2024\n\
-   8  101   30    0    0.0000E+000    1.0000E+023    1.0000E+000 1.0000000000\n\
+   18 901   30    0    0.0000E+000    1.0000E+023    1.0000E+000 1.0000000000\n\
      a     1     1     0    40     0     1     1     1     0     0\n'
 
         else:
