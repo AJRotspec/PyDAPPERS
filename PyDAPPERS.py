@@ -39,8 +39,6 @@ class baseframe:
     def kwargsoverwriter(orig, newdefaults):
         for kwarg, item in newdefaults.items():
             orig.setdefault(kwarg, item)
-            # if kwarg not in orig.keys():
-            #     orig[kwarg] = newdefaults[kwarg]
         return orig
     
     maincolor = 'maroon'
