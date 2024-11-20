@@ -37,9 +37,10 @@ class baseframe:
     # Frames building
     @staticmethod
     def kwargsoverwriter(orig, newdefaults):
-        for kwarg in newdefaults:
-            if kwarg not in orig.keys():
-                orig[kwarg] = newdefaults[kwarg]
+        for kwarg, item in newdefaults.items():
+            orig.setdefault(kwarg, item)
+            # if kwarg not in orig.keys():
+            #     orig[kwarg] = newdefaults[kwarg]
         return orig
     
     maincolor = 'maroon'
