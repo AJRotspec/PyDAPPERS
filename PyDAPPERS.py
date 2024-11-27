@@ -186,7 +186,8 @@ class fitbankbase(baseframe):
 class txtreadwindow(baseframe):
     def __init__(self, root, filename):
         wind = Toplevel(root)
-        contents = self.Text(wind)
+        wind.geometry('700x600')
+        contents = self.Text(wind, font = ('Helvetica', 10))
         contents.pack(expand = True, fill = 'both')
         with open(filename, 'r') as f:
             contents.insert(tk.END, f.read())
@@ -838,6 +839,7 @@ ops = optionsframe(root)
 
 def on_closing():
     try:
+        
         for fil in os.listdir('activememory'):
             if not os.path.isdir('activememory\\' + fil):
                 os.remove('activememory\\' + fil)
