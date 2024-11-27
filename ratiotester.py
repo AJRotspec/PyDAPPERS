@@ -72,6 +72,7 @@ class fitfinder:
     def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory\\'):        
         self.prog = prog
         cat = CatFile(fileloc + 'base.cat')
+
         with open(fileloc + 'peaklist.txt', 'r') as f:
             peaks = np.array(f.readlines(), dtype = float)
         progtranses = []
@@ -98,18 +99,21 @@ class fitfinder:
         # Make initial self.network based on ratio test
         for tran1, tran2 in zip(self.net.graph['translist'][:-1], self.net.graph['translist'][1:]):
             for obs1 in self.net.graph['trans'][tran1]:
+                pred1 = self.net.nodes[(obs1, tran1)]['pred']
                 for obs2 in self.net.graph['trans'][tran2]:
-                    if abs(self.ratiotest(self.net.nodes[(obs1, tran1)]['pred'], obs1, self.net.nodes[(obs2, tran2)]['pred']) - obs2) < ratwin:
+                    if abs(self.ratiotest(pred1, obs1, self.net.nodes[(obs2, tran2)]['pred']) - obs2) < ratwin:
                         self.net.add_edge((obs1, tran1), (obs2, tran2), dercands = [])
     
         if derwin:
             # Fill out the dercands in the edges
             for tran1, tran2 in zip(self.net.graph['translist'][:-2], self.net.graph['translist'][1:-1]):
                 for obs1 in self.net.graph['trans'][tran1]:
+                    pred1 = self.net.nodes[(obs1, tran1)]['pred']
                     for obs2 in self.net.graph['trans'][tran2]:
+                        pred2 = self.net.nodes[(obs2, tran2)]['pred']
                         for obs3, tran3 in self.net.adj[(obs2, tran2)]:
                             
-                            if abs(self.deratiotest(self.net.nodes[(obs1, tran1)]['pred'], obs1, self.net.nodes[(obs2, tran2)]['pred'], obs2, self.net.nodes[(obs3, tran3)]['pred']) - obs3) < derwin:
+                            if abs(self.deratiotest(pred1, obs1, pred2, obs2, self.net.nodes[(obs3, tran3)]['pred']) - obs3) < derwin:
                                 self.net.edges[((obs2, tran2), (obs3, tran3))]['dercands'] += [(obs1, tran1)]
         
             # Kill edges not from level one that have no dercands
@@ -216,19 +220,19 @@ class fitfinder:
 
         
 if __name__ == '__main__':
-    findnet = fitfinder(100, 10, 1, 'Ra J1J-', (6000, 18000))#, 'dummymem\\')
+    findnet = fitfinder(100, 10, 1, 'Ra J1J-', (6000, 18000), 'dummymem\\')
     
     # findnet.net.graph['trans'][(5, 0, 5, 4, 0, 4)]))
     # print(len(findnet.net.graph['trans'][(11, 0, 11, 10, 0, 10)]))
-    fig, ax, lc = findnet.plotnet()
-    rawpoints = nx.dag_longest_path(findnet.net)
+    # fig, ax, lc = findnet.plotnet()
+    # rawpoints = nx.dag_longest_path(findnet.net)
     
-    xs = np.array([point[1][0] for point in rawpoints])
-    ys = np.array([point[0] / findnet.net.nodes[point]['pred'] for point in rawpoints])
-    plt.scatter(xs, ys)
-    from numpy.polynomial.polynomial import Polynomial as p
-    fit = p(list(reversed(np.polyfit(xs, ys, 3))))
-    print(fit)
-    xfine = np.linspace(4, 11, 100)
-    plt.plot(xfine, fit(xfine))
+    # xs = np.array([point[1][0] for point in rawpoints])
+    # ys = np.array([point[0] / findnet.net.nodes[point]['pred'] for point in rawpoints])
+    # plt.scatter(xs, ys)
+    # from numpy.polynomial.polynomial import Polynomial as p
+    # fit = p(list(reversed(np.polyfit(xs, ys, 3))))
+    # print(fit)
+    # xfine = np.linspace(4, 11, 100)
+    # plt.plot(xfine, fit(xfine))
 
