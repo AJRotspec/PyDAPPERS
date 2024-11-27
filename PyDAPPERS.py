@@ -559,6 +559,8 @@ class searchfitsframe(baseframe):
         def findfits():
             
             windows = [float(entry.get()) for entry in entries]
+            for fil in os.listdir('activememory\\basefitbank'):
+                os.remove('activememory\\basefitbank\\' + fil)
             self.ff = fitfinder(*windows, proginuse, (lowerfreq, upperfreq))
             self.ff.writelins()
             maxlength.configure(text = f'Max length: {self.ff.maxpath}')
