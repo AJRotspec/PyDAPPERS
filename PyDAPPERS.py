@@ -85,6 +85,10 @@ class baseframe:
     def Text(self, *args, **kwargs):
         return tk.Text(*args, **self.kwargsoverwriter(kwargs, self.textkwargs))
 
+class genericwind(baseframe):
+    def __init__(self, root):
+        self.wind = Toplevel(root)
+
 class distwind(baseframe):
     def __init__(self, root, parent):
         self.window = Toplevel(root)
@@ -838,6 +842,9 @@ ops = optionsframe(root)
 
 
 def on_closing():
+    closewind = genericwind(root)
+    
+    closewind.Label(closewind.wind, text = 'Retain active memory? (Not recommended)').pack()
     try:
         
         for fil in os.listdir('activememory'):
