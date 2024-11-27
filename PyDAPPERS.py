@@ -554,7 +554,9 @@ class searchfitsframe(baseframe):
         resultsbutton.grid(row = 4, column = 0)
         
         maxlength = self.Label(frame, text = 'Max length: NA')
-        maxlength.grid(row = 5)
+        maxlength.grid(row = 5, column = 0)
+        numfits = self.Label(frame, text = 'Number of fits: NA')
+        numfits.grid(row = 5, column = 1)
         
         def findfits():
             
@@ -564,6 +566,7 @@ class searchfitsframe(baseframe):
             self.ff = fitfinder(*windows, proginuse, (lowerfreq, upperfreq))
             self.ff.writelins()
             maxlength.configure(text = f'Max length: {self.ff.maxpath}')
+            numfits.configure(text = f'Number of fits: {len(self.ff.paths)}')
             
                 
         findfitsbutton = self.Button(frame, text = 'Find Fits',
