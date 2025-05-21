@@ -11,3 +11,5 @@ Current todolist:
 Fit polish
 
 Spectral scrubber
+
+Implement cython to speed up grid fitter and peakfinding
