@@ -1,0 +1,34 @@
+activememory\base.int                                   Thu May 15 12:22:32 2025
+ID=     1 QSPINROT=         1.0000 MIN, MAX QN=   0  40
+MIN.LOG.STR=   -10.000 MIN.LOG.STR(FRQ/300GHZ)**2=   -10.000 MAX FREQ       40.0 GHZ, TEMP=     5.00
+     1 	1  1.0000 / x dipole moment
+     2 	2  1.0000 / y dipole moment
+     3 	3  1.0000 / z dipole moment
+.VAR FILE TITLE :test                                                  Wed Oct 23 14:31:43 2024
+                              PARAMETERS - A.PRIORI ERROR 
+     1      1         10000  2.9390000000000E+003   1.000000E+000 A
+     2      2         20000  8.5000000000000E+002   1.000000E+000 B
+     3      3         30000  6.5900000000000E+002   1.000000E+000 C
+3 parameters read, 3 independent parameters
+IQNFMT = 303
+ENERGY SORT OF WANG SUB-BLOCKS
+PROLATE ROTOR
+    V KMIN KMAX WTPL WTMN ESYMWT NSYM SPINS
+    0    0   40    1    1     99    2
+BLOCK - WT - SYM - V - TSP - N  -  other quanta  (rel. to F=0 )
+    1    1    x    0    0
+    2    1    c    0    0
+    3    1    b    0    0
+    4    1    a    0    0
+Maximum Dimension for Hamiltonian = 21
+INITIAL Q =         1.0000, NEW Q IS RELATIVE TO MIN.EGY.=         0.0000
+ NUMBER OF LINES =   5894
+TEMPERATURE - Q(SPIN-ROT.) - log Q(SPIN-ROT.)
+    300.000     73176.0536    4.8644
+    225.000     68153.0183    4.8335
+    150.000     59499.6190    4.7745
+     75.000     41381.3682    4.6168
+     37.500     23139.4524    4.3644
+     18.750     10161.6428    4.0070
+      9.375      3767.7254    3.5761
+      5.000      1472.0730    3.1679
