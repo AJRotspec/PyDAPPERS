@@ -5,13 +5,8 @@ Created on Sun May  4 16:54:45 2025
 @author: Aaron2
 """
 import numpy as np
-
-progdic = {'Ra J0J': (0, 0), 'Ra J1J-': (1, 1), 'Ra J1J+': (2, 2), 
-             'Ra J2J-': (3, 3), 'Ra J2J+': (4, 4), #'QbJ1J-': (2, 0),
-             'Rb J0J': (0, 1), 'Rb J1J': (1, 0), 'Rb 220': (4, 1), 'Rb 221': (3,2),
-             'Rb 330': (6, 3), 'Rb 331': (5, 4),
-             'Rc 220': (4, 2), 'Rc 221': (3, 1)
-             }
+from numpy.polynomial.polynomial import Polynomial as p
+from spfitspcat import progsT as progdic
 
 class twomats:
     class node:
@@ -279,6 +274,97 @@ class progfitter:
     pathindex = progdic
 
     kapnum = 801
+    def __init__(self):
+        self.alllams = self.write_lookup()
+        self.grids = {}
+        self.currkerns = {}
+        
+    def write_lookup(self, Jmax = 20):
+        self.kappa = np.linspace(-1, 1, self.kapnum)
+        Jmax += 1
+        alllams = [[] for j in range(Jmax)]
+        cat = twomats((2, 1, 1))
+        for J in range(Jmax):
+            cat[(J, J, 0)]
+            cat[(J, J, 1)]
+        for kap in self.kappa[:self.kapnum // 2 + 1]:
+            cat.setkappa(kap)
+            for J in range(Jmax):
+                alllams[J] += [[cat._eigs[J][1][0]]]
+                for ev, od in zip(cat._eigs[J][0], cat._eigs[J][1][1:]):
+                    alllams[J][-1] += [ev]
+                    alllams[J][-1] += [od]
+        
+        rawlist = []
+        for level in alllams:
+            rawlist += [[]]
+            currlams = np.array(level).T
+            for lams1, lams2 in zip(currlams, currlams[::-1]):
+                rawlist[-1] += [list(lams1) + list(-lams2[:-1][::-1])]
+        return rawlist
+
+    def generategrid(self, progname):
+        _, topind, botind = self.pathindex[progname]
+        startJ = (botind + 1) // 2 + 1
+        rawvecs = [np.array(lams2)[topind] - np.array(lams1)[botind] for lams1, lams2 in zip(self.alllams[startJ - 1:], self.alllams[startJ:])]
+        self.grids = [None] * (startJ - 1) + rawvecs
+        self.currkerns = {}
+
+    def makekernel(self, progname, startJ, length):
+        Jvec = np.arange(length, dtype = float) + startJ
+        Jmag = np.linalg.norm(Jvec)
+        Jvec /= Jmag
+        Evecs = self.grids[startJ - 1: startJ - 1 + length]
+        toret = []
+        for vec in np.array(Evecs).T:
+            overlap = np.dot(Jvec, vec)
+            vec -= Jvec * overlap
+            Emag = np.linalg.norm(vec)
+            if Emag > 1e-12:
+                vec /= Emag
+                toret += [(vec, overlap, Emag)]
+            else:
+                toret += [(vec * 0, 1, 0)]
+        self.currkerns[(startJ, length)] = (Jvec, Jmag, toret)
+        
+    def usekernel(self, progname, serstart, series):
+        n = len(series)
+        if (serstart, n) not in self.currkerns.keys():
+            self.makekernel(progname, serstart, n)
+        Jvec, Jmag, veclist = self.currkerns[(serstart, n)]
+        currres = None
+        grade = 8
+        for i, (vec, ov, Emag) in enumerate(veclist[::grade * 2]):
+            newres = (i, np.dot(series, vec))
+            if currres == None:
+                currres = newres
+            if newres[-1] > currres[-1]:
+                currres = newres
+        bestind = currres[0] * grade * 2
+        if bestind == 0:
+            return {'rms': 1e8, 'A': 0, 'B': 0 , 'C': 0, 'num': 0}
+        currres = None
+        for i, (vec, ov, Emag) in enumerate(veclist[bestind - grade: bestind + grade]):
+            newres = (i, ov, Emag, np.dot(series, vec))
+            if currres == None:
+                currres = newres
+            if newres[-1] > currres[-1]:
+                currres = newres
+        bestind = currres[0] + bestind - grade
+        A = ((Jmag, currres[1]), (0, currres[2]))
+        Adet = A[0][0] * A[1][1]
+        solvec = (np.array(((A[1][1], -A[0][1]), (0, A[0][0]))) @ (np.dot(Jvec, series), currres[-1]) / Adet)
+        A, C = np.array(((.5, 1), (.5, -1))) @ solvec
+        B = (self.kappa[bestind] * (A - C) + A + C) * .5
+        return {'rms': np.sqrt(np.linalg.norm(series) ** 2 - currres[-1] ** 2 - np.dot(Jvec, series) ** 2) / np.sqrt(n),
+                'A':A, 'B': B, 'C': C, 'num': n
+                }
+
+from scipy.interpolate import CubicSpline as cs
+class progfitter2:
+    pathindex = progdic
+
+    kapnum = 201
     def __init__(self):
         self.alllams = self.write_lookup()
         self.grids = {}
