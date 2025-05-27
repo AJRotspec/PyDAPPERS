@@ -5,66 +5,11 @@ Created on Fri Oct 25 10:37:20 2024
 @author: Aaron2
 """
 
-from spfitspcat import CatFile, LinFile
+from spfitspcat import CatFile, LinFile, progsT, JKK
 import numpy as np
 import time
 import matplotlib.pyplot as plt
 # from layereddigraph import LayeredDiGraph
-
-maxJ = 100
-progressions = {'Ra J0J':[[i + 1, 0, i + 1, i, 0, i] for i in range(maxJ)],
-                'Ra J1J-':[[i + 1, 1, i + 1, i, 1, i] for i in range(maxJ)],
-                'Ra J1J+':[[i + 2, 1, i + 1, i + 1, 1, i] for i in range(maxJ)],
-                'Ra J2J-':[[i + 2, 2, i + 1, i + 1, 2, i] for i in range(maxJ)],
-                'Ra J2J+':[[i + 3, 2, i + 2, i + 2, 2, i] for i in range(maxJ)],
-                'Rb J1J': [[i + 1, 1, i + 1, i, 0, i] for i in range(maxJ)],
-                'Rb J0J': [[i + 1, 0, i + 1, i, 1, i] for i in range(maxJ)],
-                'Rb 220': [[i + 2, 2, i, i + 1, 1, i + 1] for i in range(maxJ)],
-                'Rb 221': [[i + 2, 2, i + 1, i + 1, 1, i] for i in range(maxJ)],
-                'Rb 330': [[i + 3, 3, i, i + 2, 2, i + 1] for i in range(maxJ)],
-                'Rb 331': [[i + 3, 3, i + 1, i + 2, 2, i] for i in range(maxJ)],
-                'Rc 110': [[i + 1, 1, i, i, 0, i] for i in range(maxJ)],
-                'Rc J0J': [[i + 2, 0, i + 2, i + 1, 1, i] for i in range(maxJ)],
-                'Rc 221': [[i + 2, 2, i + 1, i + 1, 1, i + 1] for i in range(maxJ)],
-                'Rc 220': [[i + 2, 2, i, i + 1, 1, i] for i in range(maxJ)],
-                'Rc 331': [[i + 3, 3, i + 1, i + 2, 2, i + 1] for i in range(maxJ)],
-                'Rc 330': [[i + 3, 3, i, i + 2, 2, i] for i in range(maxJ)],
-                'Qa 221': [[i + 2, 2, i + 1, i + 2, 0, i + 2] for i in range(maxJ)],
-                'Qa 330': [[i + 3, 3, i, i + 3, 1, i + 3] for i in range(maxJ)],
-                'Qa 331': [[i + 3, 3, i + 1, i + 3, 1, i + 2] for i in range(maxJ)],
-                'Qa 440': [[i + 4, 4, i, i + 4, 2, i + 3] for i in range(maxJ)],
-                'Qa 441': [[i + 4, 4, i + 1, i + 4, 2, i + 2] for i in range(maxJ)],
-                'Qa JKJ-JK': [[i + 1, 1, i, i + 1, 1, i + 1] for i in range(maxJ)],
-                'Qb 220': [[i + 2, 2, i, i + 2, 1, i + 1] for i in range(maxJ)],
-                'Qb 221': [[i + 2, 2, i + 1, i + 2, 1, i + 2] for i in range(maxJ)],
-                'Qb 330': [[i + 3, 3, i, i + 3, 2, i + 1] for i in range(maxJ)],
-                'Qb 331': [[i + 3, 3, i + 1, i + 3, 2, i + 2] for i in range(maxJ)],
-                'Qb 440': [[i + 4, 4, i, i + 4, 3, i + 1] for i in range(maxJ)],
-                'Qb 441': [[i + 4, 4, i + 1, i + 4, 3, i + 2] for i in range(maxJ)],
-                'Qc 220': [[i + 2, 2, i, i + 2, 1, i + 2] for i in range(maxJ)],
-                'Qc 221': [[i + 2, 2, i + 1, i + 2, 1, i + 1] for i in range(maxJ)],
-                'Qc 330': [[i + 3, 3, i, i + 3, 2, i + 2] for i in range(maxJ)],
-                'Qc 331': [[i + 3, 3, i + 1, i + 3, 2, i + 1] for i in range(maxJ)],
-                'Qc 440': [[i + 4, 4, i, i + 4, 3, i + 2] for i in range(maxJ)],
-                'Qc 441': [[i + 4, 4, i + 1, i + 4, 3, i + 1] for i in range(maxJ)],
-                'Pa 220': [[i + 2, 2, i, i + 3, 0, i + 3] for i in range(maxJ)],
-                'Pa 330': [[i + 3, 3, i, i + 4, 1, i + 3] for i in range(maxJ)],
-                'Pa 331': [[i + 3, 3, i + 1, i + 4, 1, i + 4] for i in range(maxJ)],
-                'Pa 440': [[i + 4, 4, i, i + 5, 2, i + 3] for i in range(maxJ)],
-                'Pa 441': [[i + 4, 4, i + 1, i + 5, 2, i + 4] for i in range(maxJ)],
-                'Pb 220': [[i + 2, 2, i, i + 3, 1, i + 3] for i in range(maxJ)],
-                'Pb 221': [[i + 2, 2, i + 1, i + 3, 1, i + 2] for i in range(maxJ)],
-                'Pb 330': [[i + 3, 3, i, i + 4, 2, i + 3] for i in range(maxJ)],
-                'Pb 331': [[i + 3, 3, i + 1, i + 4, 2, i + 2] for i in range(maxJ)],
-                'Pb 440': [[i + 4, 4, i, i + 5, 3, i + 3] for i in range(maxJ)],
-                'Pb 441': [[i + 4, 4, i + 1, i + 5, 3, i + 2] for i in range(maxJ)],
-                'Pc 220': [[i + 2, 2, i, i + 3, 1, i + 2] for i in range(maxJ)],
-                'Pc 221': [[i + 2, 2, i + 1, i + 3, 1, i + 3] for i in range(maxJ)],
-                'Pc 330': [[i + 3, 3, i, i + 4, 2, i + 2] for i in range(maxJ)],
-                'Pc 331': [[i + 3, 3, i + 1, i + 4, 2, i + 3] for i in range(maxJ)],
-                'Pc 440': [[i + 4, 4, i, i + 5, 3, i + 2] for i in range(maxJ)],
-                'Pc 441': [[i + 4, 4, i + 1, i + 5, 3, i + 3] for i in range(maxJ)]
-                }
 
 
 # Each item in progsT is a 3-tuple, the firt element representing delta J, 
@@ -157,11 +102,11 @@ class fitfinder:
         progtranses = []
         progjkk = []
         for trans in cat.transes:
-            if specwindow[0] < trans.pred < specwindow[1]:
-                if trans.j1 + trans.j2 in progressions[prog]:
+            if specwindow[0] < trans[-2] < specwindow[1]:
+                if trans[3] == progsT[prog]:
                     progtranses += [trans]
-                    progjkk += [tuple(trans.j1 + trans.j2)]
-        preds = [trans.pred for trans in progtranses]
+                    progjkk += [tuple(trans[1] + trans[2])]
+        preds = [trans[-2] for trans in progtranses]
         
         
         self.J0 = progjkk[0][0]

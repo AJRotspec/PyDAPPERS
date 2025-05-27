@@ -12,6 +12,8 @@ import os
 import shutil
 from subprocess import call, DEVNULL
 
+# Each item in progsT is a 3-tuple, the firt element representing delta J, 
+# the second is T for the upper state, and the third T for the lower
 
 progsT = {'Ra J0J': (1, 0, 0), 'Ra J1J-': (1, 1, 1), 'Ra J1J+': (1, 2, 2), 
           'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), #'QbJ1J-': (0, 2, 0),
