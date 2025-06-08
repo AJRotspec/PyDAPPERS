@@ -184,24 +184,37 @@ class fitfinder:
     
     def buildnet(self):     
         self.net = LayeredDiGraph(self.span)
+        currstart = 0
         for jkk, pred in zip(self.progjkk, self.preds):
-            for peak in self.peaks:
+            changed = False
+            for i, peak in enumerate(self.peaks[currstart:]):
+                
                 if pred - self.startwin < peak:
+                    if not changed:
+                        currstart += i
+                        changed = True
+
                     if pred + self.startwin < peak:
                         break
                     self.net.add_node(jkk[0] - self.J0, peak)
-                    
         # Make initial self.network based on ratio test
         # print(len(self.net.nodes))
+        trycount = 0
         for j, (pred1, layer1, pred2, layer2) in enumerate(zip(self.preds[:-1], self.net.nodes[:-1], 
                                                                 self.preds[1:], self.net.nodes[1:])):
             ordered1 = sorted(layer1.keys())
             ordered2 = sorted(layer2.keys())
+            currstart = 0
             for obs1 in ordered1:
+                changed = False
                 rat1 = obs1 / pred1
-                for obs2 in ordered2:
+                for i, obs2 in enumerate(ordered2[currstart:]):
+                    trycount += 1
                     er = rat1 * pred2 - obs2
                     if er < self.ratwin:
+                        if not changed:
+                            currstart += i
+                            changed = True
                         if er < - self.ratwin:
                             break
                         self.net.add_edge(j, obs1, obs2)
