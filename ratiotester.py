@@ -89,6 +89,47 @@ class LayeredDiGraph:
         plt.show()
         # ax.add_collection(LineCollection(linecol))
                 
+    def DFS(self):
+        paths = []
+        for i, layer in enumerate(self.nodes[:-1]):
+            for node, dic in layer.items():
+                if not dic['in']:
+                    for newpath in self.depthsearchrecursion(i, node, dic['out']):
+                        toadd = newpath[0]
+                        for node in newpath[1:]:
+                            toadd += (node[-1],)
+                        paths.append((i, toadd))
+        
+        paths.sort(reverse = True, key = lambda x: len(x[1]))
+        best = len(paths[0][-1])
+        # print(best)
+        for i, path in enumerate(paths):
+            if len(path[-1]) < best:
+                break
+        return paths[:i]
+    def depthsearchrecursion(self, currlayer, currnode, outs):  
+        if not outs:
+            return [[currnode]]
+        toret = []
+        for out in outs:
+            nextouts = self.nodes[currlayer + 1][out]['out']
+            for path in self.depthsearchrecursion(currlayer + 1, out, nextouts):
+                toret.append([currnode] + path)
+        return toret
+    def adjsubs(self):
+        nodeinds = []
+        dims = []
+        for layer in self.nodes:
+            nodeinds += [{node: i for i, node in enumerate(layer.keys())}]
+            dims.append(len(layer))
+        toret = []
+        for layer, befnodes, endnodes, befdim, enddim in zip(self.edges, nodeinds[:-1], nodeinds[1:], dims[:-1], dims[1:]):
+            sub = np.zeros((befdim, enddim), dtype = int)
+            for edge in layer.keys():
+                sub[befnodes[edge[0]], endnodes[edge[1]]] = 1
+            toret += [sub]
+        return toret
+        
 
     
 class fitfinder:
@@ -96,93 +137,36 @@ class fitfinder:
     def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory\\'):        
         self.prog = prog
         cat = CatFile(fileloc + 'base.cat')
+        self.startwin = startwin
+        self.ratwin = ratwin
+        if derwin:
+            self.derwin = derwin
+        else:
+            # Arbitrary large value
+            self.derwin = 100
 
         with open(fileloc + 'peaklist.txt', 'r') as f:
-            peaks = np.array(f.readlines(), dtype = float)
+            self.peaks = np.array(f.readlines(), dtype = float)
         progtranses = []
-        progjkk = []
+        self.progjkk = []
         for trans in cat.transes:
             if specwindow[0] < trans[-2] < specwindow[1]:
                 if trans[3] == progsT[prog]:
                     progtranses += [trans]
-                    progjkk += [tuple(trans[1] + trans[2])]
-        preds = [trans[-2] for trans in progtranses]
+                    self.progjkk += [tuple(trans[1] + trans[2])]
+        self.preds = [trans[-2] for trans in progtranses]
         
         
-        self.J0 = progjkk[0][0]
-        self.span = progjkk[-1][0] - self.J0 + 1
-        self.net = LayeredDiGraph(self.span)
-        
-        for jkk, pred in zip(progjkk, preds):
-            for peak in peaks:
-                if pred - startwin < peak:
-                    if pred + startwin < peak:
-                        break
-                    self.net.add_node(jkk[0] - self.J0, peak, pred = pred)
-        # Make initial self.network based on ratio test
-        # print(len(self.net.nodes))
-        for j, (layer1, layer2) in enumerate(zip(self.net.nodes[:-1], self.net.nodes[1:])):
-            for obs1, dic1 in layer1.items():
-                rat1 = obs1 / dic1['pred']
-                for obs2, dic2 in layer2.items():
-                    if abs(rat1 * dic2['pred'] - obs2) < ratwin:
-                        self.net.add_edge(j, obs1, obs2)
-        if not derwin:
-            # Arbitrary large value
-            derwin = 100
-        self.dernet = LayeredDiGraph(self.span - 1)
-        for j, layer1 in enumerate(self.net.nodes[:-2]):
-            for obs1, dic1 in layer1.items():
-                pred1 = dic1['pred']
-                for obs2 in dic1['out']:
-                    dic2 = self.net.nodes[j + 1][obs2]
-                    pred2 = dic2['pred']
-                    rat = (obs2 - obs1) / (pred2 - pred1)
-                    for obs3 in dic2['out']:
-                        pred3 = self.net.nodes[j + 2][obs3]['pred']
-                        # print(rat * (pred3 - pred2) + obs2 - obs3)
-                        if abs(rat * (pred3 - pred2) + obs2 - obs3) < derwin:
-                            self.dernet.add_edge(j, (obs1, obs2), (obs2, obs3))
-        # self.paths = self.pathfinder()[-1]
-        # self.maxpath = len(self.paths[0])
-        currnet = self.dernet
-        allpaths = []
-        # self.net.draw()
-        for i in range(self.span - 1):
-            allpaths.append([])
-            for node in currnet.allnodes():
-                if len(node[2]['in']) == 0 and len(node[2]['out']) == 0:
-                    allpaths[-1].append(node[:2])
-            # currnet.draw()
-            currnet = currnet.deriv()
-        # print(allpaths)
-            
-        allpaths = [path for path in allpaths if path]
-        # print(allpaths)
-        self.paths = [self.pathcleanup(*path) for path in allpaths[-1]]
-            
+        self.J0 = self.progjkk[0][0]
+        self.span = self.progjkk[-1][0] - self.J0 + 1
+        (dJ, T1, T2) = progsT[self.prog]
+        self.jkk = [JKK(i + self.J0, T1) + JKK(i - dJ + self.J0, T2) for i in range(self.span)]
+
+        self.buildnet()
+        self.builddernet()
+        self.paths = [[(jkk, peak) for jkk, peak in zip(self.jkk[path[0]:], path[1])]
+                      for path in self.dernet.DFS()]
         self.maxpath = len(self.paths[0])
-    # def growpath(self, path):
-    #     toret = []
-    #     for segment in self.derpaths[path[-2][1]]:
-    #         if segment[:2] == path[-2:]:
-    #             toret += [path + (segment[-1],)]
-    #     return toret
-    
-    # def pathfinder(self):
-    #     #this only gives paths that start at lowest J
-    #     allpaths = [self.derpaths[min(self.net.graph['obs'].keys())].copy()]
-    #     for i in range(len(self.net.graph['obs']) - 3):
-    #         allpaths += [[]]
-    #         rems = []
-    #         for path in allpaths[-2]:
-    #             newpaths = self.growpath(path)
-    #             if newpaths:
-    #                 allpaths[-1] += newpaths
-    #                 rems += [path]
-    #         for rem in rems:
-    #             allpaths[-2].remove(rem)
-    #     return allpaths
         
     
     
@@ -198,6 +182,41 @@ class fitfinder:
             newlin.makefile()
             # print(f'activememory\\basefitbank\\{self.prog}_{i}.lin')
     
+    def buildnet(self):     
+        self.net = LayeredDiGraph(self.span)
+        for jkk, pred in zip(self.progjkk, self.preds):
+            for peak in self.peaks:
+                if pred - self.startwin < peak:
+                    if pred + self.startwin < peak:
+                        break
+                    self.net.add_node(jkk[0] - self.J0, peak)
+                    
+        # Make initial self.network based on ratio test
+        # print(len(self.net.nodes))
+        for j, (pred1, layer1, pred2, layer2) in enumerate(zip(self.preds[:-1], self.net.nodes[:-1], 
+                                                                self.preds[1:], self.net.nodes[1:])):
+            ordered1 = sorted(layer1.keys())
+            ordered2 = sorted(layer2.keys())
+            for obs1 in ordered1:
+                rat1 = obs1 / pred1
+                for obs2 in ordered2:
+                    er = rat1 * pred2 - obs2
+                    if er < self.ratwin:
+                        if er < - self.ratwin:
+                            break
+                        self.net.add_edge(j, obs1, obs2)
+
+    def builddernet(self):
+        self.dernet = LayeredDiGraph(self.span - 1)
+        for j, (pred1, pred2, pred3, layer1) in enumerate(zip(self.preds[:-2], self.preds[1:-1],
+                                                              self.preds[2:], self.net.nodes[:-2])):
+            for obs1, dic in layer1.items():
+                for obs2 in dic['out']:
+                    obs3s = self.net.nodes[j + 1][obs2]['out']
+                    rat = (obs2 - obs1) / (pred2 - pred1)
+                    for obs3 in obs3s:
+                        if abs(rat * (pred3 - pred2) + obs2 - obs3) < self.derwin:
+                            self.dernet.add_edge(j, (obs1, obs2), (obs2, obs3))
 
     @staticmethod
     def JKK(J, T):       
@@ -210,7 +229,7 @@ class fitfinder:
 if __name__ == '__main__':
     # findnet = fitfinder(100, 10, 0, 'Ra J1J-', (6000, 18000), 'dummymem\\')
     sttime = time.time()
-    findnet = fitfinder(100, 10, 1, 'Rb J1J', (4000, 12000), 'activememory\\')
+    findnet = fitfinder(1000, 100, 10, 'Rb J1J', (4000, 12000), 'activememory\\')
     print(time.time() - sttime)
     # print(len(findnet.paths))
     # paths = findnet.pathfinder()
