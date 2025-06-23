@@ -17,6 +17,9 @@ class catfileframe(baseframe):
         banner.grid(row = 0, column = 0, sticky = 'ew', columnspan = 2)#, padx = 50, pady=5)  
         def catloader(fil):
             shutil.copy(fil, 'activememory\\base.cat')
+            tempcat = CatFile('activememory\\base.cat')
+            parent.catlines.set(tempcat.transes)
+
          
         loadbutton = self.Button(frame, text = 'Load Cat File', 
                         command = lambda: self.load_file('Load .cat File', catloader, root))
@@ -38,7 +41,7 @@ class catfileframe(baseframe):
                 intfil.makefile()
                 varfil.makecat()
                 newcat = CatFile('activememory\\base.cat')
-                parent.catlines.set(value = newcat.transes)
+                parent.catlines.set(newcat.transes)
                 input_window.destroy()
     
     
