@@ -8,12 +8,14 @@ from Frames.styleguide import baseframe, txtreadwindow, genericwind
 from spfitspcat import FitFile, IntFile, LinFile
 import tkinter as tk
 from tkinter import filedialog, Toplevel, ttk
-from spfitspcat import ParVar
+from spfitspcat import ParVar, progsT
 import os
 import shutil
 from subprocess import call, DEVNULL
 from coarsefit import progfitter
 import threading
+
+import time
 
 class spfitframe(baseframe):
     def __init__(self, parent, row = 3, column = 1):
@@ -103,25 +105,25 @@ class fitbankbase(baseframe):
     def __init__(self, root, parent):
         self.fitswindow = Toplevel(root)
         self.dists = {}
-        inputframe = self.Frame(self.fitswindow)
-        inputframe.grid(row = 0, column = 0, rowspan = 2)
+        self.inputframe = self.Frame(self.fitswindow)
+        self.inputframe.grid(row = 0, column = 0, rowspan = 2)
         self.labels = []
         self.entries = []
-        self.Label(inputframe, text = 'Constant').grid(row = 0, column = 0)
-        self.Label(inputframe, text = 'Value').grid(row = 0, column = 1)
-        self.Label(inputframe, text = 'Fix').grid(row = 0, column = 2)
+        self.Label(self.inputframe, text = 'Constant').grid(row = 0, column = 0)
+        self.Label(self.inputframe, text = 'Value').grid(row = 0, column = 1)
+        self.Label(self.inputframe, text = 'Fix').grid(row = 0, column = 2)
         self.fixes = []
         self.toggles = []
         for i, field in enumerate(['A', 'B', 'C']):
             
         # Add input field and button to new window
-            self.labels += [self.Label(inputframe, text = f'{field} (MHz): ')]
+            self.labels += [self.Label(self.inputframe, text = f'{field} (MHz): ')]
             self.labels[-1].grid(row = i + 1, column = 0, pady = 15)
             
-            self.entries += [self.Entry(inputframe)]
+            self.entries += [self.Entry(self.inputframe)]
             self.entries[-1].grid(row = i + 1, column = 1)
             fix = tk.BooleanVar()
-            self.fixes += [self.Checkbutton(inputframe, variable = fix)]
+            self.fixes += [self.Checkbutton(self.inputframe, variable = fix)]
             self.fixes[-1].grid(row = i + 1, column = 3)
             self.toggles += [fix]
             
@@ -137,13 +139,13 @@ class fitbankbase(baseframe):
                 codes = ['200', '1100', '2000', '40100', '41000']
             quartwind(root, self)
             
-        quarts = self.Button(inputframe, text = 'Quartic Dist', command = quarts)
-        quarts.grid(row = 4, column = 0, columnspan = 3, pady = 15)
+        quarts = self.Button(self.inputframe, text = 'Quartic Dist', command = quarts)
+        quarts.grid(row = 5, column = 0, columnspan = 3, pady = 15)
 
         def sextwind():
             pass
-        sexts = self.Button(inputframe, text = 'Sextic Dist', command = sextwind)
-        sexts.grid(row = 5, column = 0, columnspan = 3)
+        sexts = self.Button(self.inputframe, text = 'Sextic Dist', command = sextwind)
+        sexts.grid(row = 6, column = 0, columnspan = 3)
         self.bottomframe = self.Frame(self.fitswindow)
         self.bottomframe.grid(row = 1, column = 1)
         
@@ -163,18 +165,25 @@ class gridfitwindow(fitbankbase):
 
     def __init__(self, root, parent):
         super().__init__(root, parent)
-        
-
+        runtime = tk.IntVar()
+        runtimeentry = self.Entry(self.bottomframe, textvar = runtime)
+        runtimeentry.pack(side = 'right')
+        self.Label(self.bottomframe, text = 'Run time').pack(side = 'right')
+        self.Label(self.inputframe, text = 'Ray\'s κ').grid(row = 4, column = 0)
         def rungrid():
             proginuse = root.getvar(name = 'proginuse')
             try:
+                sttime = time.time()
                 parent.fitter.generategrid(proginuse)
+                modfit = root.getvar(name = 'rawfits')[0]
+                parent.fitter.makekernel(proginuse, modfit[0][0][0], len(modfit))
                 self.allfits = [(parent.fitter.usekernel(proginuse, pairs[0][0][0], tuple(pair[1] for pair in pairs)), pairs)
                 for pairs in root.getvar(name = 'rawfits')]
                 self.allfits.sort(key = lambda x: x[0]['rms'])
                 for i, fit in enumerate(self.allfits):
                     show = (fit[0]['A'], fit[0]['B'], fit[0]['C'], fit[0]['rms'], proginuse + '_' + str(i), fit[0]['num'])
                     self.fitdisp.insert('', 'end', values = show)
+                runtime.set(int(time.time() - sttime))
                 # print(fit)
 
             except AttributeError:

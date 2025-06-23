@@ -49,7 +49,7 @@ class quantumfilterframe(baseframe):
         self.lowerJ = self.Entry(frame, textvar = parent.Jbounddown, width = 10)
         self.lowerJ.grid(row = 3, column = 3, sticky = 'w')
         self.Label(frame, text = 'Upper').grid(row = 4, column = 2, sticky = 'e')
-        self.upperJ = self.Entry(frame, textvar = parent.Jboundup,width = 10)
+        self.upperJ = self.Entry(frame, textvar = parent.Jboundup, width = 10)
         self.upperJ.grid(row = 4, column = 3, sticky = 'w')
         
             
@@ -63,11 +63,13 @@ class quantumfilterframe(baseframe):
             if tran[-2] > lower:
                 if tran[3] == currprogT:
                     break
+        # print(tran)
         self.parent.Jbounddown.set(tran[1][0])
         for tran in self.parent.catlines.get()[i:]:
             if tran[-2] > upper:
                 if tran[3] == currprogT:
                     break
+        # print(tran)
         self.parent.Jboundup.set(tran[1][0])
         
         with open('longtermmem\\bounds.txt', 'w') as f:

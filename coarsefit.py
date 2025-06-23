@@ -308,7 +308,7 @@ class progfitter:
         startJ = (botind + 1) // 2 + 1
         rawvecs = [np.array(lams2)[topind] - np.array(lams1)[botind] for lams1, lams2 in zip(self.alllams[startJ - 1:], self.alllams[startJ:])]
         self.grids = [None] * (startJ - 1) + rawvecs
-        self.currkerns = {}
+        self.currkern = {}
 
     def makekernel(self, progname, startJ, length):
         Jvec = np.arange(length, dtype = float) + startJ
@@ -325,32 +325,24 @@ class progfitter:
                 toret += [(vec, overlap, Emag)]
             else:
                 toret += [(vec * 0, 1, 0)]
-        self.currkerns[(startJ, length)] = (Jvec, Jmag, toret)
+        self.currkernname = (startJ, length)
+        self.currkern = (Jvec, Jmag, toret)
+        self.gridmat = np.array([var[0] for var in toret])
         
     def usekernel(self, progname, serstart, series):
         n = len(series)
-        if (serstart, n) not in self.currkerns.keys():
-            self.makekernel(progname, serstart, n)
-        Jvec, Jmag, veclist = self.currkerns[(serstart, n)]
+        # if (serstart, n) not in self.currkerns.keys():
+        #     self.makekernel(progname, serstart, n)
+        Jvec, Jmag, veclist = self.currkern#s[(serstart, n)]
         currres = None
         grade = 8
-        for i, (vec, ov, Emag) in enumerate(veclist[::grade * 2]):
-            newres = (i, np.dot(series, vec))
-            if currres == None:
-                currres = newres
-            if newres[-1] > currres[-1]:
-                currres = newres
-        bestind = currres[0] * grade * 2
+        bestind = np.argmax(self.gridmat[::grade] @ series) * grade
         if bestind == 0:
             return {'rms': 1e8, 'A': 0, 'B': 0 , 'C': 0, 'num': 0}
         currres = None
-        for i, (vec, ov, Emag) in enumerate(veclist[bestind - grade: bestind + grade]):
-            newres = (i, ov, Emag, np.dot(series, vec))
-            if currres == None:
-                currres = newres
-            if newres[-1] > currres[-1]:
-                currres = newres
-        bestind = currres[0] + bestind - grade
+        bestind = np.argmax(self.gridmat[bestind - grade: bestind + grade] @ series) + bestind - grade
+        res = veclist[bestind]
+        currres = (bestind, res[1], res[2], np.dot(series, res[0]))
         A = ((Jmag, currres[1]), (0, currres[2]))
         Adet = A[0][0] * A[1][1]
         solvec = (np.array(((A[1][1], -A[0][1]), (0, A[0][0]))) @ (np.dot(Jvec, series), currres[-1]) / Adet)

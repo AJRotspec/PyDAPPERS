@@ -13,3 +13,7 @@ Fit polish
 Spectral scrubber
 
 Implement cython to speed up grid fitter and peakfinding
+
+Add in option to export peaklist
+
+Load catfile not updating bounds

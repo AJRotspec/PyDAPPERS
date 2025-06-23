@@ -60,9 +60,9 @@ class mainwindow():
             def killactive():
                 try:
                     
-                #     for fil in os.listdir('activememory'):
-                #         if not os.path.isdir('activememory\\' + fil):
-                #             os.remove('activememory\\' + fil)
+                    for fil in os.listdir('activememory'):
+                        if not os.path.isdir('activememory\\' + fil):
+                            os.remove('activememory\\' + fil)
                     for fil in os.listdir('activememory\\basefitbank'):
                         if not os.path.isdir('activememory\\basefitbank\\' + fil):
                             os.remove('activememory\\basefitbank\\' + fil)
