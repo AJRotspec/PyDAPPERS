@@ -6,11 +6,7 @@ Created on Thu May  8 14:24:48 2025
 """
 from Frames.styleguide import baseframe
 from tkinter import filedialog, PhotoImage
-try:
-    from PIL import ImageTk, Image
-    iconim = True
-except:
-    iconim = False
+
 class optionsframe(baseframe):
     def __init__(self, parent, row = 1, column = 2):
         root = parent.root
@@ -46,13 +42,9 @@ class optionsframe(baseframe):
         pathbutton.grid(row = 2, column = 1)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
-        if iconim:
-            img0 = Image.open('pycomet.png')
-            w, h = img0.size
-            global img
-            img = ImageTk.PhotoImage(img0.resize((int(w / 2), int(h / 2))))
-            # img = PhotoImage(file = 'pycomet.png')
-            self.Label(frame, image = img, bg = 'light grey').grid(row = 3, column = 0, columnspan = 2)
+        global img
+        img = PhotoImage(file = 'pycomet.png')
+        self.Label(frame, image = img, bg = 'light grey').grid(row = 3, column = 0, columnspan = 2)
 
 if __name__ == '__main__':
     pass
