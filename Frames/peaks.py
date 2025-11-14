@@ -218,7 +218,7 @@ class plotframe(baseframe):
                     f.write(f'{peak}\n')
             homeframe.peaknumdisplay.config(text = f'Number of Peaks: {len(peaks)}')
             plotwindow.destroy()
-            
+            plt.close()
         # Close button for the window
         closebutton = self.Button(pickframe, text="Close", command = close)
         closebutton.pack(pady=10)
