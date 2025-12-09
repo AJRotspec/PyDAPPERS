@@ -1,4 +1,4 @@
-This project is a reskinning of the Leopold Lab's DAPPERS program in python. We ran into issues maintaining the original LabView code, so it was deemed approrpiate to rewrite it in python, which is actually used by members of the current lab. The original code can be found at https://kleopold.chem.umn.edu/dappers.
+This project is a reskinning of the Leopold Lab's DAPPERS program in Python. We ran into issues maintaining the original LabView code, so it was deemed approrpiate to rewrite it in Python, which is actually used by members of the current lab. The original code can be found at https://kleopold.chem.umn.edu/dappers.
 
 The intent of this is for it to run as similar to the original DAPPERS as possible. Buttons should be the same and do the same thing, more or less, as in the original, though there are a few additions.
 
