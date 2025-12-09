@@ -9,6 +9,7 @@ from spfitspcat import CatFile, LinFile, progsT, JKK
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+from functools import cache, lru_cache
 # from layereddigraph import LayeredDiGraph
 
 
@@ -40,17 +41,35 @@ class LayeredDiGraph:
         return toret
 
     def add_node(self, layer, u, **kwargs):
-        self.nodes[layer][u] = {'out': (), 'in': (), **kwargs}
+        self.nodes[layer][u] = {'out': [], 'in': [], **kwargs}
 
     def add_edge(self, lowerlayer, u, v, **kwargs):
-        if not u in self.nodes[lowerlayer].keys():
+        if not u in self.nodes[lowerlayer]:
             self.add_node(lowerlayer, u)
-        if not v in self.nodes[lowerlayer + 1].keys():
+        if not v in self.nodes[lowerlayer + 1]:
             self.add_node(lowerlayer + 1, v)
         self.edges[lowerlayer][(u, v)] = kwargs
-        self.nodes[lowerlayer][u]['out'] += (v,)
-        self.nodes[lowerlayer + 1][v]['in'] += (v,)
-
+        self.nodes[lowerlayer][u]['out'].append(v)
+        self.nodes[lowerlayer + 1][v]['in'].append(u)
+    
+    def remove_node(self, layer, u):
+        edges_in = self.nodes[layer][u]['in']
+        edges_out = self.nodes[layer][u]['out']
+        del self.nodes[layer][u]
+        for edge in edges_in:
+            self.remove_edge(layer - 1, edge, u)
+        for edge in edges_out:
+            self.remove_edge(layer, u, edge)
+    
+    def remove_edge(self, lowerlayer, u, v):
+        del self.edges[lowerlayer][(u, v)]
+        if u in self.nodes[lowerlayer]:
+            self.nodes[lowerlayer][u]['out'].remove(v)
+        if v in self.nodes[lowerlayer + 1]:
+            self.nodes[lowerlayer + 1][v]['in'].remove(u)
+            
+    
+    
     def deriv(self):
         def nodemerge(node1, node2):
             return node1 + node2[-1:]
@@ -89,12 +108,15 @@ class LayeredDiGraph:
         plt.show()
         # ax.add_collection(LineCollection(linecol))
                 
-    def DFS(self):
+    def DFS(self, startlayer = False):
         paths = []
-        for i, layer in enumerate(self.nodes[:-1]):
+        layerlist = self.nodes[:-1]
+        if startlayer:
+            layerlist = [self.nodes[0]]
+        for i, layer in enumerate(layerlist):
             for node, dic in layer.items():
                 if not dic['in']:
-                    for newpath in self.depthsearchrecursion(i, node, dic['out']):
+                    for newpath in self.recur_DFS(i, node, dic['out']):
                         toadd = newpath[0]
                         for node in newpath[1:]:
                             toadd += (node[-1],)
@@ -107,15 +129,60 @@ class LayeredDiGraph:
             if len(path[-1]) < best:
                 break
         return paths[:i]
-    def depthsearchrecursion(self, currlayer, currnode, outs):  
+    
+    def recur_DFS(self, currlayer, currnode, outs):  
         if not outs:
             return [[currnode]]
         toret = []
         for out in outs:
             nextouts = self.nodes[currlayer + 1][out]['out']
-            for path in self.depthsearchrecursion(currlayer + 1, out, nextouts):
+            for path in self.recur_DFS(currlayer + 1, out, nextouts):
                 toret.append([currnode] + path)
         return toret
+    def DFS2(self, startlayer = None, endlayer = None):
+        if not startlayer:
+            startlayer = self.layers[0]
+        if not endlayer:
+            endlayer = self.layers[-1]
+        paths = []
+        for node, dic in self.nodes[startlayer].items():
+            if not dic['in']:
+                for newpath in self.recur_DFS2(startlayer, node, endlayer):
+                    toadd = newpath[0]
+                    for node in newpath[1:]:
+                        toadd += (node[-1],)
+                    paths.append((startlayer, toadd))
+        
+        return paths    
+    @cache
+    def recur_DFS2(self, currlayer, currnode, endlayer):  
+        if currlayer == endlayer:
+            return [[]]
+        toret = []
+        for out in self.nodes[currlayer][currnode]['out']:
+            for path in self.recur_DFS2(currlayer + 1, out, endlayer):
+                toret.append([currnode] + path)
+            
+        
+        return toret
+    def DFS_connectivity(self, bounds = None):
+        if not bounds:
+            bounds = (self.layers[0], self.layers[-1])
+        for node in self.nodes[bounds[0]]:
+            if self.recur_DFS_connectivity(0, node, bounds[1]):
+                return True
+        return False
+    @cache
+    def recur_DFS_connectivity(self, currlayer, currnode, upperbound):
+        if currlayer == upperbound:
+            return True
+        for out in self.nodes[currlayer][currnode]['out']:
+            if self.recur_DFS_connectivity(currlayer + 1, out, upperbound):
+                return True
+        return False
+                
+
+
     def adjsubs(self):
         nodeinds = []
         dims = []
@@ -129,12 +196,24 @@ class LayeredDiGraph:
                 sub[befnodes[edge[0]], endnodes[edge[1]]] = 1
             toret += [sub]
         return toret
+    
+    def connected_layers(self):
+        seennodes = [set(node for node in self.nodes[0])]
+        for layer in self.layers[:-1]:
+            seen = set()
+            for node in seennodes[-1]:
+                for newnode in self.nodes[layer][node]['out']:
+                    seen.add(newnode)
+            seennodes.append(seen)
+        # print([len(sub) for sub in seennodes])
+    
         
 
     
 class fitfinder:
     
     def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory\\'):        
+        currtime = time.time()
         self.prog = prog
         cat = CatFile(fileloc + 'base.cat')
         self.startwin = startwin
@@ -155,17 +234,35 @@ class fitfinder:
                     progtranses += [trans]
                     self.progjkk += [tuple(trans[1] + trans[2])]
         self.preds = [trans[-2] for trans in progtranses]
-        
-        
         self.J0 = self.progjkk[0][0]
         self.span = self.progjkk[-1][0] - self.J0 + 1
         (dJ, T1, T2) = progsT[self.prog]
         self.jkk = [JKK(i + self.J0, T1) + JKK(i - dJ + self.J0, T2) for i in range(self.span)]
+        newtime = time.time()
+        print(f'Read cat file: {newtime - currtime:.02} s')
+        currtime = newtime
 
         self.buildnet()
+        newtime = time.time()
+        print(f'Build ratio net: {newtime - currtime:.02} s')
+        currtime = newtime
+
         self.builddernet()
+        newtime = time.time()
+        print(f'Build derivative net: {newtime - currtime:.02} s')
+        currtime = newtime
+
+        # self.dernet.connected_layers()
+        self.prunedernet()
+        newtime = time.time()
+        print(f'Prune dernet: {newtime - currtime:.02} s')
+        currtime = newtime
+
         self.paths = [[(jkk, peak) for jkk, peak in zip(self.jkk[path[0]:], path[1])]
-                      for path in self.dernet.DFS()]
+                      for path in self.dernet.DFS2()]
+        newtime = time.time()
+        print(f'Found all paths: {newtime - currtime:02f} s')
+        currtime = newtime
         self.maxpath = len(self.paths[0])
         
     
@@ -227,9 +324,19 @@ class fitfinder:
                 for obs2 in dic['out']:
                     obs3s = self.net.nodes[j + 1][obs2]['out']
                     rat = (obs2 - obs1) / (pred2 - pred1)
+                    derpred = rat * (pred3 - pred2) + obs2
                     for obs3 in obs3s:
-                        if abs(rat * (pred3 - pred2) + obs2 - obs3) < self.derwin:
+                        if abs(derpred - obs3) < self.derwin:
                             self.dernet.add_edge(j, (obs1, obs2), (obs2, obs3))
+
+    def prunedernet(self):
+        deleted = 0
+        for layer, nodes in zip(self.dernet.layers[-2::-1], self.dernet.nodes[-2::-1]):
+            for node, adj in list(nodes.items()):
+                if not adj['out']:
+                    self.dernet.remove_node(layer, node)
+                    deleted += 1
+        print(deleted)
 
     @staticmethod
     def JKK(J, T):       
@@ -242,8 +349,8 @@ class fitfinder:
 if __name__ == '__main__':
     # findnet = fitfinder(100, 10, 0, 'Ra J1J-', (6000, 18000), 'dummymem\\')
     sttime = time.time()
-    findnet = fitfinder(1000, 100, 10, 'Rb J1J', (4000, 12000), 'activememory\\')
-    print(time.time() - sttime)
+    findnet = fitfinder(400, 40, 4, 'Rb J1J', (4000, 12000), 'activememory\\')
+    # print(time.time() - sttime)
     # print(len(findnet.paths))
     # paths = findnet.pathfinder()
     # print(len(findnet.net.edges))
