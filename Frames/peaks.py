@@ -4,7 +4,7 @@ Created on Thu May  8 14:28:15 2025
 
 @author: Aaron2
 """
-from Frames.styleguide import baseframe, txtreadwindow
+from Frames.styleguide import baseframe, txtreadwindow, graphcontrols
 from tkinter import Toplevel
 import tkinter as tk
 from spfitspcat import Spectrum
@@ -61,28 +61,28 @@ class plotframe(baseframe):
         
         # Create a frame for the plot and the toolbar
         plotframe = self.Frame(plotwindow)
-        plotframe.pack(side = 'left', padx=10, pady=10)
+        plotframe.pack(side = 'left', padx=40, pady=40)
 
         spe = Spectrum.fromfile(filename)
 
         # Create the Matplotlib figure and axis
-        fig, ax = plt.subplots(figsize = (12, 5))
-        baseplot = ax.plot(spe.xs, spe.ys, color = 'k')
-        ax.set_xlabel('Frequency (MHz)')
+        fig, self.ax = plt.subplots(figsize = (12, 5))
+        baseplot = self.ax.plot(spe.xs, spe.ys, color = 'k')
+        self.ax.set_xlabel('Frequency (MHz)')
 
         # Embed the figure in the Tkinter window
-        canvas = FigureCanvasTkAgg(fig, master = plotframe)
-        canvas.draw()
-        canvas.get_tk_widget().pack()
+        self.canvas = FigureCanvasTkAgg(fig, master = plotframe)
+        self.canvas.draw()
+        self.canvas.get_tk_widget().pack()
 
         pickframe = self.Frame(plotwindow)
         pickframe.pack(side = 'right', fill = tk.Y, padx=10, pady=10)
 
         self.Label(pickframe, text = 'Peak Picking Options').pack(pady=5)
         
-        peakplot = ax.vlines(spe.xs[0], 0, spe.ys[0])
+        peakplot = self.ax.vlines(spe.xs[0], 0, spe.ys[0])
         baseline = savgol_filter(spe.ys, 101, 1) + 6
-        baselineplot = ax.plot(spe.xs, baseline, color = 'b')[0]
+        baselineplot = self.ax.plot(spe.xs, baseline, color = 'b')[0]
         peakplot.set_visible(False)
         
         self.Label(pickframe, text = 'Window Size').pack(pady=5)
@@ -99,8 +99,8 @@ class plotframe(baseframe):
             baselineplot.remove()
             baseline = savgol_filter(spe.ys, int(windowentry.get()), 1)
             baseline += float(heightentry.get())
-            baselineplot = ax.plot(spe.xs, baseline, color = 'b')[0]
-            canvas.draw()
+            baselineplot = self.ax.plot(spe.xs, baseline, color = 'b')[0]
+            self.canvas.draw()
 
         windowentry.bind('<Return>', adjbaseline)
         heightentry.bind('<Return>', adjbaseline)
@@ -109,83 +109,85 @@ class plotframe(baseframe):
             nonlocal peakplot, baseline, peaknumdisplay, peaks
             peakplot.remove()            
             peaks, props = find_peaks(spe.ys, height = baseline, distance = 1, width = (1, 20))         
-            peakplot = ax.vlines(spe.xs[peaks], 0, spe.ys[peaks], color = 'r')         
+            peakplot = self.ax.vlines(spe.xs[peaks], 0, spe.ys[peaks], color = 'r')         
             peaknumdisplay.configure(text = f'Number of peaks: {len(peaks)}')
             
-            canvas.draw()
-        def moveleft(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(xlim[0] - xspan * 0.2, xlim[1] - xspan * 0.2)
-            canvas.draw()
-        def Moveleft(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(xlim[0] - xspan * 2, xlim[1] - xspan * 2)
-            canvas.draw()
-        def moveright(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(xlim[0] + xspan * 0.2, xlim[1] + xspan * 0.2)
-            canvas.draw()
-        def Moveright(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(xlim[0] + xspan * 2, xlim[1] + xspan * 2)
-            canvas.draw()
+            self.canvas.draw()
+        # def moveleft(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(xlim[0] - xspan * 0.2, xlim[1] - xspan * 0.2)
+        #     self.canvas.draw()
+        # def Moveleft(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(xlim[0] - xspan * 2, xlim[1] - xspan * 2)
+        #     self.canvas.draw()
+        # def moveright(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(xlim[0] + xspan * 0.2, xlim[1] + xspan * 0.2)
+        #     self.canvas.draw()
+        # def Moveright(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(xlim[0] + xspan * 2, xlim[1] + xspan * 2)
+        #     self.canvas.draw()
     
-        def zoomy(event):
-            ylim = ax.get_ylim()
-            ax.set_ylim(-5, ylim[1] * 0.9)
-            canvas.draw()
-        def Zoomy(event):
-            ylim = ax.get_ylim()
-            ax.set_ylim(-5, ylim[1] * 0.5)
-            canvas.draw()
-        def zoomouty(event):
-            ylim = ax.get_ylim()
-            ax.set_ylim(-5, ylim[1] * 1.1)
-            canvas.draw()
-        def Zoomouty(event):
-            ylim = ax.get_ylim()
-            ax.set_ylim(-5, ylim[1] * 1.5)
-            canvas.draw()
-        def zoomx(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(xlim[0] + xspan * 0.1, xlim[1] - xspan * 0.1)
-            canvas.draw()
-        def Zoomx(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(xlim[0] + xspan * 0.3, xlim[1] - xspan * 0.3)
-            canvas.draw()
-        def zoomoutx(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(max(0, xlim[0] - xspan * 0.1), xlim[1] + xspan * 0.1)
-            canvas.draw()
-        def Zoomoutx(event):
-            xlim = ax.get_xlim()
-            xspan = xlim[1] - xlim[0]
-            ax.set_xlim(max(0, xlim[0] - xspan * 0.3), xlim[1] + xspan * 0.3)  # Zoom in by 10%
-            canvas.draw()
+        # def zoomy(event):
+        #     ylim = self.ax.get_ylim()
+        #     self.ax.set_ylim(-5, ylim[1] * 0.9)
+        #     self.canvas.draw()
+        # def Zoomy(event):
+        #     ylim = self.ax.get_ylim()
+        #     self.ax.set_ylim(-5, ylim[1] * 0.5)
+        #     self.canvas.draw()
+        # def zoomouty(event):
+        #     ylim = self.ax.get_ylim()
+        #     self.ax.set_ylim(-5, ylim[1] * 1.1)
+        #     self.canvas.draw()
+        # def Zoomouty(event):
+        #     ylim = self.ax.get_ylim()
+        #     self.ax.set_ylim(-5, ylim[1] * 1.5)
+        #     self.canvas.draw()
+        # def zoomx(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(xlim[0] + xspan * 0.1, xlim[1] - xspan * 0.1)
+        #     self.canvas.draw()
+        # def Zoomx(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(xlim[0] + xspan * 0.3, xlim[1] - xspan * 0.3)
+        #     self.canvas.draw()
+        # def zoomoutx(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(mself.ax(0, xlim[0] - xspan * 0.1), xlim[1] + xspan * 0.1)
+        #     self.canvas.draw()
+        # def Zoomoutx(event):
+        #     xlim = self.ax.get_xlim()
+        #     xspan = xlim[1] - xlim[0]
+        #     self.ax.set_xlim(mself.ax(0, xlim[0] - xspan * 0.3), xlim[1] + xspan * 0.3)  # Zoom in by 10%
+        #     self.canvas.draw()
 
             
 
-        # Bind keys to the Toplevel window
-        plotwindow.bind('a', moveleft)
-        plotwindow.bind('A', Moveleft)
-        plotwindow.bind('s', moveright)
-        plotwindow.bind('S', Moveright)
-        plotwindow.bind('w', zoomy)
-        plotwindow.bind('W', Zoomy)
-        plotwindow.bind('z', zoomouty)
-        plotwindow.bind('Z', Zoomouty)
-        plotwindow.bind('e', zoomx)
-        plotwindow.bind('E', Zoomx)
-        plotwindow.bind('q', zoomoutx)
-        plotwindow.bind('Q', Zoomoutx)
+        # # Bind keys to the Toplevel window
+        # plotwindow.bind('a', moveleft)
+        # plotwindow.bind('A', Moveleft)
+        # plotwindow.bind('s', moveright)
+        # plotwindow.bind('S', Moveright)
+        # plotwindow.bind('w', zoomy)
+        # plotwindow.bind('W', Zoomy)
+        # plotwindow.bind('z', zoomouty)
+        # plotwindow.bind('Z', Zoomouty)
+        # plotwindow.bind('e', zoomx)
+        # plotwindow.bind('E', Zoomx)
+        # plotwindow.bind('q', zoomoutx)
+        # plotwindow.bind('Q', Zoomoutx)
+        graphcontrols(plotwindow, self).load()
+
         peaknumdisplay = self.Label(pickframe, text = 'Number of Peaks: 0')
         peaknumdisplay.pack(pady = 10)
         # Update Plot button
