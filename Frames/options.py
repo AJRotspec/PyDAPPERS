@@ -15,6 +15,7 @@ class optionsframe(baseframe):
         banner = self.Title(frame, text = 'Additional Options')
         banner.grid(row = 0, column = 0, columnspan = 2, sticky = 'ew')
         
+        """
         def setdefault():
             pass
         defbutton = self.Button(frame, text = 'Set Default', command = setdefault)
@@ -29,7 +30,7 @@ class optionsframe(baseframe):
             pass
         helpbutton = self.Button(frame, text = 'Help', command = Help)
         helpbutton.grid(row = 1, column = 1)
-
+        """
         def setpath():
             
             defaultpath = filedialog.askdirectory(title = 'Select new default path',
