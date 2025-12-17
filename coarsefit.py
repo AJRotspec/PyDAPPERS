@@ -273,13 +273,13 @@ class twomats:
 class progfitter:
     pathindex = progdic
 
-    kapnum = 801
+    kapnum = 1601
     def __init__(self):
         self.alllams = self.write_lookup()
         self.grids = {}
         self.currkerns = {}
         
-    def write_lookup(self, Jmax = 20):
+    def write_lookup(self, Jmax = 35):
         self.kappa = np.linspace(-1, 1, self.kapnum)
         Jmax += 1
         alllams = [[] for j in range(Jmax)]
@@ -356,7 +356,7 @@ from scipy.interpolate import CubicSpline as cs
 class progfitter2:
     pathindex = progdic
 
-    kapnum = 201
+    kapnum = 801
     def __init__(self):
         self.alllams = self.write_lookup()
         self.grids = {}
@@ -416,7 +416,7 @@ class progfitter2:
             self.makekernel(progname, serstart, n)
         Jvec, Jmag, veclist = self.currkerns[progname][(serstart, n)]
         currres = None
-        grade = 8
+        grade = 4
         for i, (vec, ov, Emag) in enumerate(veclist[::grade * 2]):
             newres = (i, np.dot(series, vec))
             if currres == None:
