@@ -6,10 +6,11 @@ Created on Sun May  4 16:54:45 2025
 """
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial as p
-from spfitspcat import progsT as progdic
+from twomats import twomats
+
 
 class progfitter:
-    pathindex = progdic
+    pathindex = twomats.progsT
 
     kapnum = 1601
     def __init__(self):
@@ -92,7 +93,7 @@ class progfitter:
 
 from scipy.interpolate import CubicSpline as cs
 class progfitter2:
-    pathindex = progdic
+    pathindex = twomats.progsT
 
     kapnum = 801
     def __init__(self):

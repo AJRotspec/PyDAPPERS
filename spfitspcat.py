@@ -11,25 +11,10 @@ import numpy as np
 import os
 import shutil
 from subprocess import call, DEVNULL
-
+import twomats
 # Each item in progsT is a 3-tuple, the firt element representing delta J, 
 # the second is T for the upper state, and the third T for the lower
 
-progsT = {'Ra J0J': (1, 0, 0), 'Ra J1J-': (1, 1, 1), 'Ra J1J+': (1, 2, 2), 
-          'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), #'QbJ1J-': (0, 2, 0),
-          'Rb J0J': (1, 0, 1), 'Rb J1J': (1, 1, 0), 'Rb 220': (1, 4, 1),
-          'Rb 221': (1, 3, 2), 'Rb 330': (1, 6, 3), 'Rb 331': (1, 5, 4),
-          'Rc 220': (1, 4, 2), 'Rc 221': (1, 3, 1)
-             }
-
-def JKK(J, T):       
-    return (J, (T + 1) // 2, (2 * J - T + 1) // 2)
-
-def progify(jkk1, jkk2):
-    toret = [jkk1[0] - jkk2[0]]
-    toret.append(jkk1[1] * 2 - (jkk1[0] + jkk1[1] + jkk1[2]) % 2)
-    toret.append(jkk2[1] * 2 - (jkk2[0] + jkk2[1] + jkk2[2]) % 2)
-    return tuple(toret)
 
 class Spectrum:
 
@@ -413,7 +398,7 @@ class CatFile:
             return alphanumeric[string[0]] + int(string[1])
         tomake.append(tuple(catint(catline[j:j + 2]) for j in range(55, 60, 2)))
         tomake.append(tuple(catint(catline[j:j + 2]) for j in range(67, 72, 2)))
-        tomake += [progify(tomake[-2], tomake[-1]), float(catline[3:13]), float(catline[22:28])]
+        tomake += [twomats.progify(tomake[-2], tomake[-1]), float(catline[3:13]), float(catline[22:28])]
         return tomake
     # def readline(cls, catline):
     #     tomake = {}

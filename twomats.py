@@ -10,6 +10,24 @@ from numpy.polynomial.polynomial import Polynomial as p
 from spfitspcat import progsT as progdic
 
 class twomats:
+    progsT = {'Ra J0J': (1, 0, 0), 'Ra J1J-': (1, 1, 1), 'Ra J1J+': (1, 2, 2), 
+              'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), #'QbJ1J-': (0, 2, 0),
+              'Rb J0J': (1, 0, 1), 'Rb J1J': (1, 1, 0), 'Rb 220': (1, 4, 1),
+              'Rb 221': (1, 3, 2), 'Rb 330': (1, 6, 3), 'Rb 331': (1, 5, 4),
+              'Rc 220': (1, 4, 2), 'Rc 221': (1, 3, 1)
+                 }
+
+    @staticmethod
+    def JKK(J, T):       
+        return (J, (T + 1) // 2, (2 * J - T + 1) // 2)
+
+    @staticmethod
+    def progify(jkk1, jkk2):
+        toret = [jkk1[0] - jkk2[0]]
+        toret.append(jkk1[1] * 2 - (jkk1[0] + jkk1[1] + jkk1[2]) % 2)
+        toret.append(jkk2[1] * 2 - (jkk2[0] + jkk2[1] + jkk2[2]) % 2)
+        return tuple(toret)
+
     class node:
         def __init__(self, jkk, parent):
             if jkk[0] != jkk[1] + jkk[2]:
