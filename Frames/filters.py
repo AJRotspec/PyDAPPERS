@@ -7,7 +7,7 @@ Created on Thu May  8 14:51:24 2025
 from Frames.styleguide import baseframe
 import tkinter as tk
 from tkinter import Toplevel
-from spfitspcat import progsT
+from Rotors import twomats
 
 class quantumfilterframe(baseframe):
     def __init__(self, parent, row = 3, column = 0):
@@ -56,7 +56,7 @@ class quantumfilterframe(baseframe):
     def updatebounds(self, *args):
         lower = int(self.lowerval.get())
         upper = int(self.upperval.get())
-        currprogT = progsT[self.parent.proginuse.get()]
+        currprogT = twomats.progsT[self.parent.proginuse.get()]
         for i, tran in enumerate(self.parent.catlines.get()):
             # print(tran)
             # print(type(tran))

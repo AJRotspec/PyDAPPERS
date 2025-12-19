@@ -6,8 +6,6 @@ Created on Thu Dec 18 10:19:33 2025
 """
 
 import numpy as np
-from numpy.polynomial.polynomial import Polynomial as p
-from spfitspcat import progsT as progdic
 
 class twomats:
     progsT = {'Ra J0J': (1, 0, 0), 'Ra J1J-': (1, 1, 1), 'Ra J1J+': (1, 2, 2), 

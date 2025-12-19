@@ -5,7 +5,8 @@ Created on Fri Oct 25 10:37:20 2024
 @author: Aaron2
 """
 
-from spfitspcat import CatFile, LinFile, progsT, JKK
+from spfitspcat import CatFile, LinFile
+from Rotors import twomats
 import numpy as np
 import time
 import matplotlib.pyplot as plt
@@ -16,12 +17,6 @@ from functools import cache, lru_cache
 # Each item in progsT is a 3-tuple, the firt element representing delta J, 
 # the second is T for the upper state, and the third T for the lower
 
-progsT = {'Ra J0J': (1, 0, 0), 'Ra J1J-': (1, 1, 1), 'Ra J1J+': (1, 2, 2), 
-          'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), #'QbJ1J-': (0, 2, 0),
-          'Rb J0J': (1, 0, 1), 'Rb J1J': (1, 1, 0), 'Rb 220': (1, 4, 1),
-          'Rb 221': (1, 3, 2), 'Rb 330': (1, 6, 3), 'Rb 331': (1, 5, 4),
-          'Rc 220': (1, 4, 2), 'Rc 221': (1, 3, 1)
-             }
 
 class LayeredDiGraph:
     def __init__(self, layers):
@@ -230,14 +225,14 @@ class fitfinder:
         self.progjkk = []
         for trans in cat.transes:
             if specwindow[0] < trans[-2] < specwindow[1]:
-                if trans[3] == progsT[prog]:
+                if trans[3] == twomats.progsT[prog]:
                     progtranses += [trans]
                     self.progjkk += [tuple(trans[1] + trans[2])]
         self.preds = [trans[-2] for trans in progtranses]
         self.J0 = self.progjkk[0][0]
         self.span = self.progjkk[-1][0] - self.J0 + 1
-        (dJ, T1, T2) = progsT[self.prog]
-        self.jkk = [JKK(i + self.J0, T1) + JKK(i - dJ + self.J0, T2) for i in range(self.span)]
+        (dJ, T1, T2) = twomats.progsT[self.prog]
+        self.jkk = [twomats.JKK(i + self.J0, T1) + twomats.JKK(i - dJ + self.J0, T2) for i in range(self.span)]
         newtime = time.time()
         print(f'Read cat file: {newtime - currtime:.02} s')
         currtime = newtime

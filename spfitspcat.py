@@ -11,7 +11,7 @@ import numpy as np
 import os
 import shutil
 from subprocess import call, DEVNULL
-import twomats
+from Rotors import twomats
 # Each item in progsT is a 3-tuple, the firt element representing delta J, 
 # the second is T for the upper state, and the third T for the lower
 
