@@ -8,7 +8,7 @@ from Frames.styleguide import baseframe, txtreadwindow, genericwind
 from spfitspcat import FitFile, IntFile, LinFile
 import tkinter as tk
 from tkinter import filedialog, Toplevel, ttk
-from spfitspcat import ParVar, progsT
+from spfitspcat import ParVar
 import os
 import shutil
 from subprocess import call, DEVNULL
