@@ -11,6 +11,7 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from functools import cache, lru_cache
+# from scipy.sparse import coo_array
 # from layereddigraph import LayeredDiGraph
 
 
@@ -202,7 +203,24 @@ class LayeredDiGraph:
             seennodes.append(seen)
         # print([len(sub) for sub in seennodes])
     
-        
+    def connectivity_matrices(self):
+        inddicts = [{node: i for i, node in enumerate(layer)} for layer in self.nodes[1:]]
+        toret = []
+        for layer, nextlayer in zip(self.nodes, inddicts):
+            newarr = np.zeros(shape = (len(layer), len(nextlayer)), dtype = int)
+            for u, dic in enumerate(layer.values()):
+                for v in dic['out']:
+                    newarr[u, nextlayer[v]] = 1
+            toret.append(newarr)
+        return toret
+    
+    def pathcount(self):
+        # This method is VERY inefficient
+        mats = self.connectivity_matrices()
+        mat = mats[0]
+        for nextmat in mats[1:]:
+            mat = mat @ nextmat
+        return np.sum(mat)
 
     
 class fitfinder:
@@ -246,8 +264,13 @@ class fitfinder:
         newtime = time.time()
         print(f'Build derivative net: {newtime - currtime:.02} s')
         currtime = newtime
+        
+        self.dernet.DFS_connectivity()
+        
+        newtime = time.time()
+        print(f'Check connectivity: {newtime - currtime:.02} s')
+        currtime = newtime
 
-        # self.dernet.connected_layers()
         self.prunedernet()
         newtime = time.time()
         print(f'Prune dernet: {newtime - currtime:.02} s')
@@ -263,7 +286,7 @@ class fitfinder:
     
     
     def writelins(self):
-        indops = progsT[self.prog]
+        indops = twomats.progsT[self.prog]
         for i, path in enumerate(self.paths):
             writelist = []
             newlin = LinFile(f'activememory\\basefitbank\\{self.prog}_{i}.lin')
@@ -337,13 +360,16 @@ class fitfinder:
     def JKK(J, T):       
         return (J, (T + 1) // 2, (2 * J - T + 1) // 2)
     def pathcleanup(self, startJ, peaks):
-        (dJ, T1, T2) = progsT[self.prog]
+        (dJ, T1, T2) = twomats. progsT[self.prog]
         startJ += self.J0
         return [(self.JKK(i + startJ, T1) + self.JKK(i - dJ + startJ, T2), peak) for i, peak in enumerate(peaks)]
-        
+      
+    
+    
+    
 if __name__ == '__main__':
     # findnet = fitfinder(100, 10, 0, 'Ra J1J-', (6000, 18000), 'dummymem\\')
-    sttime = time.time()
+    # sttime = time.time()
     findnet = fitfinder(400, 40, 4, 'Rb J1J', (4000, 12000), 'activememory\\')
     # print(time.time() - sttime)
     # print(len(findnet.paths))
