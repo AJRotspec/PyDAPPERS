@@ -6,7 +6,7 @@ Created on Wed Oct 23 15:25:12 2024
 """
 import tkinter as tk
 # from Frames import *
-# from Frames.styleguide import genericwind
+from Frames.styleguide import genericwind
 from Frames.options import optionsframe
 from Frames.peaks import peaklistframe
 from Frames.catfile import catfileframe
@@ -39,7 +39,6 @@ class mainwindow():
         self.root = tk.Tk()
         self.root.title('PyDAPPERS ' + version)
         self.root.configure(background = 'black')
-        
         # Define all 'global' variables
         self.initialize_globals()
 
@@ -52,17 +51,20 @@ class mainwindow():
         self.spfit = spfitframe(self)
         self.ops = optionsframe(self)
        
-         
+     
         def on_closing():
-            # closewind = genericwind(self.root)
-            
-            # closewind.Label(closewind.wind, text = 'Retain active memory? (Not recommended)').pack()
+            closewind = genericwind(self.root)
+            # if self.spfit.gridthread:
+            #     pass
+            #     # self.spfit.gridstopevent.set()
+            #     # self.spfit.gridthread.join()
+            closewind.Label(closewind.wind, text = 'Retain active memory? (Not recommended)').pack()
             def killactive():
                 try:
                     
-                    for fil in os.listdir('activememory'):
-                        if not os.path.isdir('activememory\\' + fil):
-                            os.remove('activememory\\' + fil)
+                #     for fil in os.listdir('activememory'):
+                #         if not os.path.isdir('activememory\\' + fil):
+                #             os.remove('activememory\\' + fil)
                     for fil in os.listdir('activememory\\basefitbank'):
                         if not os.path.isdir('activememory\\basefitbank\\' + fil):
                             os.remove('activememory\\basefitbank\\' + fil)
