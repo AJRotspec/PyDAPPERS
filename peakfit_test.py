@@ -53,7 +53,7 @@ def difffit(x, y, graphing = False):
         if len(part) > 3:
             subx = x[part] + dx / 2
             subder = np.diff(y)[part]
-            toret += list(polyfit(x[part], y[part], 3, graphing))
+            toret += list(polyfit(x[part], y[part], 2, graphing))
     return toret
     # for dyi in np.diff(y):
         

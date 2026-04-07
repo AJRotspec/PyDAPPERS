@@ -6,7 +6,7 @@ Created on Sun May  4 16:54:45 2025
 """
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial as p
-from twomats import twomats
+from Rotors import twomats
 
 
 class progfitter:

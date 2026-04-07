@@ -27,22 +27,6 @@ class catfileframe(baseframe):
         
     
         def catmaker():
-            def save():
-                values = [float(entry.get()) for entry in entries]
-                with open('longtermmem\\abc.txt', 'w') as f:
-                    for val in values[:3]:
-                        f.write(str(val) + '\n')
-
-                varfil = ParVar('activememory\\base.var', propdict = {'pars':{'10000': (values[0], 1, 'A'),
-                                                              '20000': (values[1], 1, 'B'),
-                                                              '30000': (values[2], 1, 'C')}})
-                varfil.makefile()
-                intfil = IntFile('activememory\\base.int', values[3:])
-                intfil.makefile()
-                varfil.makecat()
-                newcat = CatFile('activememory\\base.cat')
-                parent.catlines.set(newcat.transes)
-                input_window.destroy()
     
     
             input_window = Toplevel(root)
@@ -62,7 +46,22 @@ class catfileframe(baseframe):
                 entries += [self.Entry(input_window)]
                 entries[-1].insert(0, default)
                 entries[-1].pack(padx=10)
-            
+            def save():
+                values = [float(entry.get()) for entry in entries]
+                with open('longtermmem\\abc.txt', 'w') as f:
+                    for val in values[:3]:
+                        f.write(str(val) + '\n')
+                varfil = ParVar('activememory\\base.var', propdict = {'pars':{'10000': (values[0], 1, 'A'),
+                                                              '20000': (values[1], 1, 'B'),
+                                                              '30000': (values[2], 1, 'C')}})
+                varfil.makefile()
+                intfil = IntFile('activememory\\base.int', values[3:])
+                intfil.makefile()
+                varfil.makecat()
+                newcat = CatFile('activememory\\base.cat')
+                parent.catlines.set(newcat.transes)
+                input_window.destroy()
+
             save_button = self.Button(input_window, text="Save", command=save)
             save_button.pack(pady=10)
     
