@@ -8,13 +8,166 @@ import numpy as np
 from numpy.polynomial.polynomial import Polynomial as p
 from Rotors import twomats
 
+class coarsefittergeneral:
 
+    kapnum = 3375
+    def __init__(self, Jmax = 10):
+        self.alllams = self.write_lookup(Jmax)
+        
+    def write_lookup(self, Jmax = 10):
+        self.kappa = np.linspace(-1, 1, self.kapnum)
+        Jmax += 1
+        alllams = [[] for j in range(Jmax)]
+        self.cat = twomats((2, 1, 1))
+        for J in range(Jmax):
+            self.cat[(J, J, 0)]
+            self.cat[(J, J, 1)]
+        for kap in self.kappa[:self.kapnum // 2 + 1]:
+            self.cat.setkappa(kap)
+            for J in range(Jmax):
+                alllams[J] += [[self.cat._eigs[J][1][0]]]
+                for ev, od in zip(self.cat._eigs[J][0], self.cat._eigs[J][1][1:]):
+                    alllams[J][-1] += [ev]
+                    alllams[J][-1] += [od]
+        
+        rawlist = []
+        for level in alllams:
+            rawlist += [[]]
+            currlams = np.array(level).T
+            for lams1, lams2 in zip(currlams, currlams[::-1]):
+                rawlist[-1] += [list(lams1) + list(-lams2[:-1][::-1])]
+        return rawlist
+
+
+    # Make grid and kernel givin a list of arbitrary transitions
+
+    def makekernel(self, translist):
+        Jvec = np.array([tran[0][0] for tran in translist], dtype = float)
+        Jmag = np.linalg.norm(Jvec)
+        Jvec /= Jmag
+        Evecs = []
+        for (node1, node2) in translist:
+            subE1 = np.array(self.alllams[node1[0]][node1[0] + node1[1] - node1[2]])
+            subE2 = np.array(self.alllams[node2[0]][node2[0] + node2[1] - node2[2]])
+            Evecs.append(subE1 - subE2)
+        toret = []
+        for vec in np.array(Evecs).T:
+            overlap = np.dot(Jvec, vec)
+            vec -= Jvec * overlap
+            Emag = np.linalg.norm(vec)
+            if Emag > 1e-12:
+                vec /= Emag
+                toret += [(vec, overlap, Emag)]
+            else:
+                toret += [(vec * 0, 1, 0)]
+
+        self.currkern = (Jvec, Jmag, toret)
+        self.gridmat = np.array([var[0] for var in toret])
+        self.tree = gridvectree(self.gridmat, 15, 2)
+
+    
+    def usetree(self, series):
+        n = len(series)
+        # if (serstart, n) not in self.currkerns.keys():
+        #     self.makekernel(progname, serstart, n)
+        Jvec, Jmag, veclist = self.currkern#s[(serstart, n)]
+        bestind = self.tree.use_tree(series)
+        if bestind == 0:
+            return {'rms': 1e8, 'A': 0, 'B': 0 , 'C': 0, 'num': 0}
+
+        res = veclist[bestind]
+        currres = (bestind, res[1], res[2], np.dot(series, res[0]))
+        A = ((Jmag, currres[1]), (0, currres[2]))
+        Adet = A[0][0] * A[1][1]
+        solvec = (np.array(((A[1][1], -A[0][1]), (0, A[0][0]))) @ (np.dot(Jvec, series), currres[-1]) / Adet)
+        A, C = np.array(((.5, 1), (.5, -1))) @ solvec
+        B = (self.kappa[bestind] * (A - C) + A + C) * .5
+        return {'rms': np.sqrt(np.linalg.norm(series) ** 2 - currres[-1] ** 2 - np.dot(Jvec, series) ** 2) / np.sqrt(n),
+                'A':A, 'B': B, 'C': C, 'num': n
+                }
+
+    def usekernel(self, series):
+        n = len(series)
+        # if (serstart, n) not in self.currkerns.keys():
+        #     self.makekernel(progname, serstart, n)
+        Jvec, Jmag, veclist = self.currkern#s[(serstart, n)]
+        currres = None
+        grade = 64
+        bestind = np.argmax(self.gridmat[::grade] @ series) * grade
+        if bestind == 0:
+            return {'rms': 1e8, 'A': 0, 'B': 0 , 'C': 0, 'num': 0}
+        currres = None
+        bestind = np.argmax(self.gridmat[bestind - grade: bestind + grade] @ series) + bestind - grade
+        res = veclist[bestind]
+        # print(bestind)
+        currres = (bestind, res[1], res[2], np.dot(series, res[0]))
+        A = ((Jmag, currres[1]), (0, currres[2]))
+        Adet = A[0][0] * A[1][1]
+        solvec = (np.array(((A[1][1], -A[0][1]), (0, A[0][0]))) @ (np.dot(Jvec, series), currres[-1]) / Adet)
+        A, C = np.array(((.5, 1), (.5, -1))) @ solvec
+        B = (self.kappa[bestind] * (A - C) + A + C) * .5
+        return {'rms': np.sqrt(np.linalg.norm(series) ** 2 - currres[-1] ** 2 - np.dot(Jvec, series) ** 2) / np.sqrt(n),
+                'A':A, 'B': B, 'C': C, 'num': n
+                }
+    def graph(self, series):
+        n = len(series)
+        # if (serstart, n) not in self.currkerns.keys():
+        #     self.makekernel(progname, serstart, n)
+        Jvec, Jmag, veclist = self.currkern#s[(serstart, n)]
+        x, y = self.kappa[1:], self.gridmat[1:] @ series
+        f = np.fft.rfft(y)
+        f[100:] = 0
+        yadj = np.fft.irfft(f)
+        plt.plot(x, y)
+        plt.plot(x, yadj)
+        plt.ylim(263, 265)
+        plt.xlim(-1, -.2)
+
+class orthtransform:
+    def __init__(self, n):
+        self.n = n
+        
+    def make_vecs(self, numvecs):
+        self.vecs = [np.ones((self.n,))]
+
+class gridvectree:
+    def __init__(self, grid, split = 5, depth = 4):
+        self.grid = grid
+        self.n = len(grid)
+        self.split = split
+        self.layers = []
+        print(self.n)
+        for i in range(depth):
+            self.layers.append(self.split_layer(i + 1))
+        
+        print([layer.shape for layer in self.layers])
+
+    def split_layer(self, layer):
+        reps = round(self.split ** layer)
+        spacing = round(self.n / reps)
+        # print(reps, spacing)
+        return np.array([np.sum(self.grid[spacing * i: spacing * (i + 1)], axis = 0) for i in range(reps)])
+
+    def use_tree(self, vec):
+        layerinds = [0, -1]
+        for i, layer in enumerate(self.layers):
+            # reps = round(self.split ** i)
+            # spacing = round(self.n / reps)
+            bestind = np.argmax(layer[slice(*layerinds)] @ vec) + layerinds[0]
+            layerinds = [max(self.split * bestind - 1, 0), min(self.split * (bestind + 1) + 1, self.n)]
+            # print(bestind, layerinds)
+        return np.argmax(self.grid[slice(*layerinds)] @ vec) + layerinds[0]
+        
+
+if __name__ == '__main__':
+    tree = gridvectree(np.random.random((3125, 7)), 5, 4)
+    tree.use_tree(np.arange(7))
 class progfitter:
     pathindex = twomats.progsT
 
     kapnum = 1601
-    def __init__(self):
-        self.alllams = self.write_lookup()
+    def __init__(self, Jmax = 35):
+        self.alllams = self.write_lookup(Jmax)
         self.grids = {}
         self.currkerns = {}
         
