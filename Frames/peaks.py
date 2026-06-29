@@ -23,9 +23,8 @@ class peaklistframe(baseframe):
         # frame.grid_propagate(False)
         banner = self.Title(frame, text = 'Experimental Peak List')
         banner.grid(row = 0, column = 0, sticky = 'we', columnspan = 2)#, padx = 50, pady=5)  
-        self.peaknumdisplay = self.Label(frame, text = 'Number of Peaks: NA', font =self.mainfont)
-        self.peaknumdisplay.grid(row = 2, column = 0, padx = 10, pady = 10)
-        
+        self.Label(frame, text = 'Number of Peaks:').grid(row = 2, column = 0, padx = 10, pady = 10)
+        self.Entry(frame, textvar = parent.peaknum).grid(row =2, column = 1)
         def peakfinder(fil):
             plotframe(root, fil, self)
             
@@ -40,7 +39,7 @@ class peaklistframe(baseframe):
             lines.sort(key = lambda x: float(x))
             with open('activememory\\peaklist.txt', 'w') as f:
                 f.writelines(lines)
-            self.peaknumdisplay.config(text = f'Number of Peaks: {len(lines)}')
+                self.parent.peaknum.set(len(lines))
          
         loadbutton = self.Button(frame, text = 'Load Peak List', 
                         command = lambda: self.load_file('Load Peak List', peakloader, root))
@@ -50,7 +49,7 @@ class peaklistframe(baseframe):
         def viewpeaks():
             txtreadwindow(root, 'activememory\\peaklist.txt')
         viewbutton.configure(command = viewpeaks)
-        viewbutton.grid(row = 2, column = 1, padx = 10, pady = 10)
+        viewbutton.grid(row = 3, column = 1, padx = 10, pady = 10)
         for i in range(2):
             frame.grid_columnconfigure(i, weight=1)  
  
@@ -145,7 +144,7 @@ class plotframe(baseframe):
             with open('activememory\\peaklist.txt', 'w') as f:
                 for peak in xpeaks:
                     f.write(f'{peak}\n')
-            homeframe.peaknumdisplay.config(text = f'Number of Peaks: {len(peaks)}')
+            homeframe.parent.peaknum.set(len(peaks))
             plotwindow.destroy()
             plt.close()
         # Close button for the window

@@ -6,7 +6,7 @@ Created on Thu May  8 14:51:24 2025
 """
 from Frames.styleguide import baseframe
 import tkinter as tk
-from tkinter import Toplevel
+from tkinter import Toplevel, ttk
 from Rotors import twomats
 
 class quantumfilterframe(baseframe):
@@ -77,48 +77,93 @@ class quantumfilterframe(baseframe):
 
    
 class quantumfiltwindow(baseframe):
+    coldict = {'Ra': 'red', 'Rb': 'light green', 'Rc': 'blue',
+                'Qa': 'pink', 'Qb': 'cyan', 'Qc': 'purple',
+                'Pa': 'light coral', 'Pb': 'PaleGreen4', 'Pc': 'SkyBlue3'}
+    progdict = {'Ra': ['J0J', 'J1J-', 'J1J+', 'J2J-', 'J2J+'],
+                'Rb': ['J1J', 'J0J', '220', '221', '330', '331'],
+                'Rc': ['110', 'J0J', '221', '220', '331', '330'],
+                'Qa': ['221', '330', '331', '440', '441', 'JKJ-JK'],
+                'Qb': ['220', '221', '330', '331', '440', '441'],
+                'Qc': ['220', '221', '330', '331', '440', '441'],
+                'Pa': ['220', '330', '331', '440', '441'],
+                'Pb': ['220', '221', '330', '331', '440', '441'],
+                'Pc': ['220', '221', '330', '331', '440', '441']}
+
     def __init__(self, parentframe):
-        coldict = {'Ra': 'red', 'Rb': 'light green', 'Rc': 'blue',
-                   'Qa': 'pink', 'Qb': 'cyan', 'Qc': 'purple',
-                   'Pa': 'light coral', 'Pb': 'PaleGreen4', 'Pc': 'SkyBlue3'}
-        progdict = {'Ra': ['J0J', 'J1J-', 'J1J+', 'J2J-', 'J2J+'],
-                    'Rb': ['J1J', 'J0J', '220', '221', '330', '331'],
-                    'Rc': ['110', 'J0J', '221', '220', '331', '330'],
-                    'Qa': ['221', '330', '331', '440', '441', 'JKJ-JK'],
-                    'Qb': ['220', '221', '330', '331', '440', '441'],
-                    'Qc': ['220', '221', '330', '331', '440', '441'],
-                    'Pa': ['220', '330', '331', '440', '441'],
-                    'Pb': ['220', '221', '330', '331', '440', '441'],
-                    'Pc': ['220', '221', '330', '331', '440', '441']}
-    
-        branchwindow = Toplevel(parentframe.root)
-        branchwindow.title('Quantum Filters')   
-    
+        self.parentframe = parentframe
+        self.branchwindow = Toplevel(parentframe.root)
+        self.branchwindow.title('Quantum Filters')   
+        
+        self.setup_displayframe()
+
         # Add input field and button to new window
-        for i, pqr in enumerate('RQP'):
-            for j, abc in enumerate('abc'):
-                branch = pqr + abc
-                button = self.Button(branchwindow, text = f'{pqr} Branch:\n {abc} type', width=10, height=3, bg = coldict[branch],
-                                   command = lambda branch = branch: progselect(branch, branchwindow))
-                button.grid(row = i, column = j, padx=10, pady=10)
+
+        self.progframe = self.Frame(self.branchwindow)
+        self.progframe.grid(row = 0, column = 1)
+
+
+        self. setup_gridframe()
         # save_button = tk.Button(input_window, text="Save", command=save)
         # save_button.pack(pady=10)
         # proginuse = tk.StringVar(master = root, value = 'hi')
-        def progselect(branch, branchwindow):
-            progwindow = Toplevel(parentframe.root)
-            progwindow.title(f'{branch[0]} Branch {branch[1]} type')
-            def save():
-                for button in buttons:
-                    if button[0].get():
-                        parentframe.parent.proginuse.set(f'{branch} {button[1]}')
-                        parentframe.updatebounds()
-                progwindow.destroy()
-                branchwindow.destroy()
-            buttons = []
-            for prog in progdict[branch]:
-                togglevar = tk.BooleanVar()
-                button = self.Checkbutton(progwindow, variable = togglevar, text = prog, width=10, height=3)
-                buttons += [(togglevar, prog)]
-                button.pack(pady = 1)
-            save_button = self.Button(progwindow, text="Save", command=save)
-            save_button.pack(pady=10)
+
+    def setup_displayframe(self):
+        self.displayframe = self.Frame(self.branchwindow)
+        self.displayframe.grid(row = 0, column = 2)
+        treeheadings = ('J\"', 'Ka\"', 'Kc\"', 'J\'', 'Ka\'', 'Kc\'')
+        self.tree = ttk.Treeview(self.displayframe, columns = treeheadings, show = 'headings', padding = 1)
+        for head in treeheadings:
+            self.tree.heading(head, text = head)
+            self.tree.column(head, width = 50, anchor = 'center')
+        self.tree.grid(row = 0, column = 0)
+
+    def setup_gridframe(self):
+        self.gridframe = self.Frame(self.branchwindow)
+        self.gridframe.grid(row = 0, column = 0)
+        for i, pqr in enumerate('RQP'):
+            for j, abc in enumerate('abc'):
+                branch = pqr + abc
+                button = self.Button(self.gridframe, text = f'{pqr} Branch:\n {abc} type', width=10, height=3, bg = self.coldict[branch],
+                                   command = lambda branch = branch: self.progselect(branch))
+                button.grid(row = i, column = j, padx=10, pady=10)
+
+    def progselect(self, branch):
+        # progwindow.title(f'{branch[0]} Branch {branch[1]} type')
+        self.progframe.destroy()
+        self.progframe = self.Frame(self.branchwindow)
+        self.progframe.grid(row = 0, column = 1)
+
+        checks = []
+        def save():
+            for check, prog in zip(checks, self.progdict[branch]):
+                if check.get():
+                    self.parentframe.parent.proginuse.set(f'{branch} {prog}')
+                    self.parentframe.updatebounds()
+            self.branchwindow.destroy()
+        def check(*args):
+            ind = int(args[0].split()[-1])
+            if checks[ind].get():
+
+                for i, check in enumerate(checks):
+                    if i != ind:
+                        check.set(False)
+                tempprogname = f'{branch} {self.progdict[branch][ind]}'
+                for item in self.tree.get_children():
+                    self.tree.delete(item)                
+
+                for trans in twomats.seriesJKK(tempprogname):
+                    vals = list(trans[0]) + list(trans[1])
+                    self.tree.insert('', 'end', values = vals)
+
+
+        for i, prog in enumerate(self.progdict[branch]):
+            togglevar = tk.BooleanVar(name = f'progop {i}')
+            togglevar.trace_add('write', check)
+            checks.append(togglevar)
+            button = self.Checkbutton(self.progframe, variable = togglevar, text = prog, width=10, height=2)
+            button.pack(pady = 0)
+        save_button = self.Button(self.progframe, text="Save", command=save)
+        save_button.pack(pady=10)
+
+

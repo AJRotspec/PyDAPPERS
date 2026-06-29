@@ -136,12 +136,10 @@ class gridvectree:
         self.n = len(grid)
         self.split = split
         self.layers = []
-        print(self.n)
+        # print(self.n)
         for i in range(depth):
             self.layers.append(self.split_layer(i + 1))
         
-        print([layer.shape for layer in self.layers])
-
     def split_layer(self, layer):
         reps = round(self.split ** layer)
         spacing = round(self.n / reps)
@@ -159,9 +157,9 @@ class gridvectree:
         return np.argmax(self.grid[slice(*layerinds)] @ vec) + layerinds[0]
         
 
-if __name__ == '__main__':
-    tree = gridvectree(np.random.random((3125, 7)), 5, 4)
-    tree.use_tree(np.arange(7))
+# if __name__ == '__main__':
+#     tree = gridvectree(np.random.random((3125, 7)), 5, 4)
+#     tree.use_tree(np.arange(7))
 class progfitter:
     pathindex = twomats.progsT
 
@@ -170,7 +168,7 @@ class progfitter:
         self.alllams = self.write_lookup(Jmax)
         self.grids = {}
         self.currkerns = {}
-        
+    
     def write_lookup(self, Jmax = 35):
         self.kappa = np.linspace(-1, 1, self.kapnum)
         Jmax += 1
@@ -195,18 +193,25 @@ class progfitter:
                 rawlist[-1] += [list(lams1) + list(-lams2[:-1][::-1])]
         return rawlist
 
-    def generategrid(self, progname):
-        _, topind, botind = self.pathindex[progname]
-        startJ = (botind + 1) // 2 + 1
-        rawvecs = [np.array(lams2)[topind] - np.array(lams1)[botind] for lams1, lams2 in zip(self.alllams[startJ - 1:], self.alllams[startJ:])]
-        self.grids = [None] * (startJ - 1) + rawvecs
-        self.currkern = {}
+    def grid_diff(self, trans):
+        jtup, jtdown = tuple(map(twomats.indfinder, twomats.jkkreader(trans)))
+        return np.array(self.alllams[jtup[0]][jtup[1]]) - np.array(self.alllams[jtdown[0]][jtdown[1]])
+    
 
-    def makekernel(self, progname, startJ, length):
-        Jvec = np.arange(length, dtype = float) + startJ
+    # def generategrid(self, proglist):
+    #     self.grid = 
+    #     _, topind, botind = self.pathindex[progname]
+    #     startJ = (botind + 1) // 2 + 1
+    #     rawvecs = [np.array(lams2)[topind] - np.array(lams1)[botind] for lams1, lams2 in zip(self.alllams[startJ - 1:], self.alllams[startJ:])]
+    #     self.grids = [None] * (startJ - 1) + rawvecs
+    #     self.currkern = {}
+
+    def make_kernel(self, tranlist):
+        self.tranlist = tranlist
+        Jvec = np.array([jkk1[0] for (jkk1, jkk2) in tranlist], dtype = float)
         Jmag = np.linalg.norm(Jvec)
         Jvec /= Jmag
-        Evecs = self.grids[startJ - 1: startJ - 1 + length]
+        Evecs = [self.grid_diff(tran) for tran in tranlist]
         toret = []
         for vec in np.array(Evecs).T:
             overlap = np.dot(Jvec, vec)
@@ -217,12 +222,14 @@ class progfitter:
                 toret += [(vec, overlap, Emag)]
             else:
                 toret += [(vec * 0, 1, 0)]
-        self.currkernname = (startJ, length)
+
         self.currkern = (Jvec, Jmag, toret)
         self.gridmat = np.array([var[0] for var in toret])
         
-    def usekernel(self, progname, serstart, series):
+    def use_kernel(self, series):
         n = len(series)
+        if n != len(self.tranlist):
+            raise Exception('Wrong length of series.')
         # if (serstart, n) not in self.currkerns.keys():
         #     self.makekernel(progname, serstart, n)
         Jvec, Jmag, veclist = self.currkern#s[(serstart, n)]
@@ -243,6 +250,8 @@ class progfitter:
         return {'rms': np.sqrt(np.linalg.norm(series) ** 2 - currres[-1] ** 2 - np.dot(Jvec, series) ** 2) / np.sqrt(n),
                 'A':A, 'B': B, 'C': C, 'num': n
                 }
+
+
 
 from scipy.interpolate import CubicSpline as cs
 class progfitter2:

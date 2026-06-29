@@ -9,7 +9,7 @@ import numpy as np
 
 class twomats:
     progsT = {'Ra J0J': (1, 0, 0), 'Ra J1J-': (1, 1, 1), 'Ra J1J+': (1, 2, 2), 
-              'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), #'QbJ1J-': (0, 2, 0),
+              'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), 'Qb J1J-': (0, 2, 0),
               'Rb J0J': (1, 0, 1), 'Rb J1J': (1, 1, 0), 'Rb 220': (1, 4, 1),
               'Rb 221': (1, 3, 2), 'Rb 330': (1, 6, 3), 'Rb 331': (1, 5, 4),
               'Rc 220': (1, 4, 2), 'Rc 221': (1, 3, 1)
@@ -25,7 +25,17 @@ class twomats:
         toret.append(jkk1[1] * 2 - (jkk1[0] + jkk1[1] + jkk1[2]) % 2)
         toret.append(jkk2[1] * 2 - (jkk2[0] + jkk2[1] + jkk2[2]) % 2)
         return tuple(toret)
-
+    
+    @staticmethod
+    def seriesJT(seriesname, endJ = 10):
+        progT = twomats.progsT[seriesname]
+        startJ = (progT[2] + 1) // 2
+        for j in range(startJ, endJ + 1):
+            yield ((j + progT[0], progT[1]), (j, progT[2]))
+    @staticmethod
+    def seriesJKK(seriesname, endJ = 10):
+        for jtup, jtdown in twomats.seriesJT(seriesname, endJ):
+            yield (twomats.JKK(*jtup), twomats.JKK(*jtdown))
     class node:
         def __init__(self, jkk, parent):
             if jkk[0] != jkk[1] + jkk[2]:
@@ -240,9 +250,7 @@ class twomats:
         self.massgrad()
         self.ABC += np.array(deltaABC)
         self.kappa = (2 * self.ABC[1] - self.ABC[0] - self.ABC[2]) / (self.ABC[0] - self.ABC[2])      
-
-
-    
+  
     @classmethod
     def jkkreader(cls, jkk):
         if type(jkk) == str:
@@ -253,6 +261,7 @@ class twomats:
             jkk1 = jkk[:cls.numinds]
             jkk2 = jkk[cls.numinds:]
         return tuple(jkk1), tuple(jkk2)
+
     def fitter(self, eject = False, constraint = 1e3 * np.ones((3,))):
         bounds = np.array([self.ABC * (1 - constraint), self.ABC * (1 + constraint)])
         # Must be run after giving the 'obs' attribute to all edges
@@ -286,3 +295,5 @@ class twomats:
         return self.ABC, np.sqrt(np.diagonal(np.linalg.inv(jac.T@jac)) / len(ers)) * stdev,\
             np.linalg.norm(ers) / np.sqrt(len(ers)), ers
 
+if __name__ == '__main__':
+    print([_ for _ in twomats.seriesJKK('Qb J1J-')])

@@ -19,6 +19,44 @@ import os
 
 version = '2.0'
 
+"""
+
+Basic workflow is that the user selects a collection of peaks,
+either via the peak finder or by loading a list in the peaks frame.
+These peaks are written into activememory/peaklist.txt
+
+The user then either loads or generates a .cat file using the catfile
+frame. This is stored as activememory/base.cat
+
+A progression is then selected from the filters frame. It's stored in
+the proginuse StringVar. This window also allows for the selection of
+the frequency limits, which determine the expected range of the 
+transitions. All of these are stored in the freqbound and Jbound tkVars.
+
+The user then navigates to the searchfits frame, where they may set
+the tolerances for the core DAPPERS algorithm. New to this method, they
+also decide if and at what tolerance to apply gridfit. More info can
+be found in those files, but potential fits are recorded as .lin files
+in activememory/basefitbank/
+
+The spfit frame has three buttons, intended to be used from left to right
+    Run Fits calls spfit on all the .lin files generated in the last step.
+    The user will see them sorted by rms, may view the full .fit files, 
+    and send selected fits to the fitbank by highlighting and pressing the
+    'send selected fits to fitbank' button. This writes them into the 
+    activememory/finalfitbank/ directory.
+
+    Fit Bank is intended to be used once multiple sets of lines from several
+    progressions have been sent to the fit bank. In this window, the user
+    can mix and match the subsets together in order to create a final 
+    version of the fit
+
+    Fit Polish allows the user to finalize a fit
+
+
+"""
+
+
 # Do setup
 if not 'longtermmem' in os.listdir():
     os.mkdir('longtermmem')
@@ -88,6 +126,9 @@ class mainwindow():
         with open('longtermmem\\path.txt', 'r') as f:
             defaultpath = f.read()
         self.defaultpath = tk.StringVar(self.root, name = 'defaultpath', value = defaultpath)
+        
+        self.peaknum = tk.IntVar(self.root, name = 'peaknum', value = 0)
+        
         with open('longtermmem\\bounds.txt', 'r') as f:
             lower, upper = tuple(map(int, f.readlines()))
         self.freqboundup = tk.IntVar(self.root, name = 'freqboundup', value = upper)
@@ -95,7 +136,7 @@ class mainwindow():
         self.Jboundup = tk.IntVar(self.root, name = 'Jboundup', value = 0)
         self.Jbounddown = tk.IntVar(self.root, name = 'Jbounddown', value = 0)
 
-        self.proginuse = tk.StringVar(self.root, name = 'proginuse', value = 'Rb J1J')
+        self.proginuse = tk.StringVar(self.root, name = 'proginuse', value = 'None selected')
         
         tempcat = CatFile('activememory\\base.cat')
         self.catlines = tk.Variable(self.root, name = 'catlines', value = tempcat.transes)

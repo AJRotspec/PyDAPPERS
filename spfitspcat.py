@@ -5,7 +5,7 @@ Created on Sat Sep  3 08:51:22 2022
 @author: Aaron2
 """
 
-from scipy.signal import find_peaks, savgol_filter
+# from scipy.signal import find_peaks, savgol_filter
 import numpy as np
 #import matplotlib.pyplot as plt
 import os

@@ -1,2 +1,8 @@
-/activememory/*
+/activememory/
 /longtermmem/
+**/__pycache__/
+/env/
+/.spyproject/
+/build/
+/cythoncode/
+/dummymem/

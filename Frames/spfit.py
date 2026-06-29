@@ -23,15 +23,14 @@ class spfitframe(baseframe):
         frame = self.Frame(root)
         frame.grid(row = row, column = column, sticky = 'nsew')#, padx=10, pady=10)
         frame.grid_propagate(False)
-        banner = self.Title(frame, text = 'Run SPFIT')
-        banner.grid(row = 0, column = 0, columnspan = 3, sticky = 'ew')
+        self.Title(frame, text = 'Run SPFIT').grid(row = 0, column = 0, columnspan = 3, sticky = 'ew')
         
-        gridstat = self.Label(frame, text = 'Initializing grid')
-        gridstat.grid(row = 2, column = 1, columnspan= 2)
-        def initialize_fitter():
-            self.fitter = progfitter()
-            gridstat.configure(text = 'Grid initialized')
-        threading.Thread(target = initialize_fitter, daemon=True).start()
+        # gridstat = self.Label(frame, text = 'Initializing grid')
+        # gridstat.grid(row = 2, column = 1, columnspan= 2)
+        # def initialize_fitter():
+        #     self.fitter = progfitter()
+        #     gridstat.configure(text = 'Grid initialized')
+        # threading.Thread(target = initialize_fitter, daemon=True).start()
         
         def runfits():
             runfitswindow(root, self)
@@ -41,22 +40,16 @@ class spfitframe(baseframe):
 
         def fitbank():
             fitbankwindow(root, self)
-        bankbutton = self.Button(frame, text = 'Fit Bank', 
-                              command = fitbank)
-        bankbutton.grid(row = 1, column = 1)     
+        self.Button(frame, text = 'Fit Bank', command = fitbank).grid(row = 1, column = 1)     
 
         def fitpolish():
             fitpolishwindow(root, self)
-        polishbutton = self.Button(frame, text = 'Fit Polish', 
-                              command = fitpolish)
-        polishbutton.grid(row = 1, column = 2)
+        # self.Button(frame, text = 'Fit Polish', command = fitpolish).grid(row = 1, column = 2)
         for i in range(3):
             frame.grid_columnconfigure(i, weight=1)  
-        def gridfit():
-            gridfitwindow(root, self)
-        gridbutton = self.Button(frame, text = 'Grid Fit', 
-                              command = gridfit)
-        gridbutton.grid(row = 2, column = 0)
+        # def gridfit():
+        #     gridfitwindow(root, self)
+        # self.Button(frame, text = 'Grid Fit', command = gridfit).grid(row = 2, column = 0)
 
 
 
@@ -159,75 +152,7 @@ class fitbankbase(baseframe):
             self.fitdisp.column(head, width = 50, anchor = 'center')
         self.fitdisp.pack(fill = 'x')
 
-class gridfitwindow(fitbankbase):
-    parpath = 'activememory\\fitstart.par'
-    treeheadings = ('A', 'B', 'C', 'rms', 'progression', 'number of lines')
 
-    def __init__(self, root, parent):
-        super().__init__(root, parent)
-        runtime = tk.IntVar()
-        runtimeentry = self.Entry(self.bottomframe, textvar = runtime)
-        runtimeentry.pack(side = 'right')
-        self.Label(self.bottomframe, text = 'Run time').pack(side = 'right')
-        self.Label(self.inputframe, text = 'Ray\'s κ').grid(row = 4, column = 0)
-        def rungrid():
-            proginuse = root.getvar(name = 'proginuse')
-            try:
-                sttime = time.time()
-                parent.fitter.generategrid(proginuse)
-                modfit = root.getvar(name = 'rawfits')[0]
-                parent.fitter.makekernel(proginuse, modfit[0][0][0], len(modfit))
-                self.allfits = [(parent.fitter.usekernel(proginuse, pairs[0][0][0], tuple(pair[1] for pair in pairs)), pairs)
-                for pairs in root.getvar(name = 'rawfits')]
-                self.allfits.sort(key = lambda x: x[0]['rms'])
-                for i, fit in enumerate(self.allfits):
-                    show = (fit[0]['A'], fit[0]['B'], fit[0]['C'], fit[0]['rms'], proginuse + '_' + str(i), fit[0]['num'])
-                    self.fitdisp.insert('', 'end', values = show)
-                runtime.set(int(time.time() - sttime))
-                # print(fit)
-
-            except AttributeError:
-                erwind = genericwind(root)
-                self.Label(erwind, text = 'Grid not yet initialized')
-                
-        def send():
-            tosend = [self.fitdisp.item(item, "values")[4] for item in self.fitdisp.selection()]
-            for item in self.fitdisp.selection():
-                self.fitdisp.delete(item)
-            # fitbankfits = root.getvar(name = 'fitbankfits')
-            # for fit in tosend:
-            #     fitbankfits.append(
-            def writelin(name, assignments):
-                newlin = LinFile(f'activememory\\basefitbank\\{name}.lin')
-                newlin.assign(assignments)
-                newlin.makefile()
-
-            for fitind in tosend:
-                fit = self.allfits[int(fitind.split('_')[1])]
-                # rotcons = {str(code * 1e4): (fit[0][const], 1.0, const) for code, const in zip((1, 2, 3), 'ABC')}
-                fit = fit[-1]
-                writelin(fitind, [(pair[1], pair[0]) for pair in fit])
-                # newpar = ParVar(f'activememory\\basefitbank\\{fitind}.par', propdict = {'pars': rotcons})
-                # newpar.makefile()
-                # call(['Rot\\spfit', f'activememory\\basefitbank\\{fitind}.par'],
-                #      stdout = DEVNULL, shell = True)
-                # os.remove(f'activememory\\basefitbank\\{fitind}.var')
-                # os.remove(f'activememory\\basefitbank\\{fitind}.par')
-                # os.remove(f'activememory\\basefitbank\\{fitind}.bak')
-                # shutil.copy(f'activememory\\basefitbank\\{fitind}.fit', f'activememory\\finalfitbank\\{fitind}.fit')
-                # os.remove(f'activememory\\basefitbank\\{fitind}.lin')
-                # os.remove(f'activememory\\basefitbank\\{fitind}.fit')
-
-        sendtobankbutton = self.Button(self.bottomframe, text = 'Write lins', command = send)
-        sendtobankbutton.pack(side = 'right')
-        viewbutton = self.Button(self.bottomframe, text = 'View')
-        viewbutton.pack(side = 'right')
-        def viewfit():
-            toread = self.fitdisp.item(self.fitdisp.selection()[0], "values")[4]
-            txtreadwindow(root, f'activememory\\basefitbank\\{toread}.fit')
-        viewbutton.configure(command = viewfit)
-        
-        self.runbutton2.configure(command = rungrid)
 class runfitswindow(fitbankbase):
     parpath = 'activememory\\fitstart.par'
     treeheadings = ('A', 'B', 'C', 'rms', 'progression', 'number of lines')
@@ -422,7 +347,7 @@ class fitbankwindow(fitbankbase):
 
 class fitpolishwindow(fitbankwindow):
     parpath = 'activememory\\polishfit.par'
-    def __init__(self, root):
+    def __init__(self, root, parent):
         super().__init__(root)
         self.fitdisp.destroy() 
         self.compilebutton.destroy()     

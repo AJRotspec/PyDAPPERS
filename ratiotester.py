@@ -15,7 +15,7 @@ from functools import cache, lru_cache
 # from layereddigraph import LayeredDiGraph
 
 
-# Each item in progsT is a 3-tuple, the firt element representing delta J, 
+# Each item in progsT is a 3-tuple, the first element representing delta J, 
 # the second is T for the upper state, and the third T for the lower
 
 
@@ -104,78 +104,104 @@ class LayeredDiGraph:
         plt.show()
         # ax.add_collection(LineCollection(linecol))
                 
-    def DFS(self, startlayer = False):
-        paths = []
-        layerlist = self.nodes[:-1]
-        if startlayer:
-            layerlist = [self.nodes[0]]
-        for i, layer in enumerate(layerlist):
-            for node, dic in layer.items():
-                if not dic['in']:
-                    for newpath in self.recur_DFS(i, node, dic['out']):
-                        toadd = newpath[0]
-                        for node in newpath[1:]:
-                            toadd += (node[-1],)
-                        paths.append((i, toadd))
+    # def DFS(self, startlayer = False):
+    #     paths = []
+    #     layerlist = self.nodes[:-1]
+    #     if startlayer:
+    #         layerlist = [self.nodes[0]]
+    #     for i, layer in enumerate(layerlist):
+    #         for node, dic in layer.items():
+    #             if not dic['in']:
+    #                 for newpath in self.recur_DFS(i, node, dic['out']):
+    #                     toadd = newpath[0]
+    #                     for node in newpath[1:]:
+    #                         toadd += (node[-1],)
+    #                     paths.append((i, toadd))
         
-        paths.sort(reverse = True, key = lambda x: len(x[1]))
-        best = len(paths[0][-1])
-        # print(best)
-        for i, path in enumerate(paths):
-            if len(path[-1]) < best:
-                break
-        return paths[:i]
+    #     paths.sort(reverse = True, key = lambda x: len(x[1]))
+    #     best = len(paths[0][-1])
+    #     # print(best)
+    #     for i, path in enumerate(paths):
+    #         if len(path[-1]) < best:
+    #             break
+    #     return paths[:i]
     
-    def recur_DFS(self, currlayer, currnode, outs):  
-        if not outs:
-            return [[currnode]]
-        toret = []
-        for out in outs:
-            nextouts = self.nodes[currlayer + 1][out]['out']
-            for path in self.recur_DFS(currlayer + 1, out, nextouts):
-                toret.append([currnode] + path)
-        return toret
+    # def recur_DFS(self, currlayer, currnode, outs):  
+    #     if not outs:
+    #         return [[currnode]]
+    #     toret = []
+    #     for out in outs:
+    #         nextouts = self.nodes[currlayer + 1][out]['out']
+    #         for path in self.recur_DFS(currlayer + 1, out, nextouts):
+    #             toret.append([currnode] + path)
+    #     return toret
     def DFS2(self, startlayer = None, endlayer = None):
         if not startlayer:
             startlayer = self.layers[0]
         if not endlayer:
             endlayer = self.layers[-1]
-        paths = []
-        for node, dic in self.nodes[startlayer].items():
-            if not dic['in']:
-                for newpath in self.recur_DFS2(startlayer, node, endlayer):
-                    toadd = newpath[0]
-                    for node in newpath[1:]:
-                        toadd += (node[-1],)
-                    paths.append((startlayer, toadd))
+
+        @cache
+        def recur_DFS2(currlayer, currnode, endlayer): 
+            # print(currlayer, currnode) 
+            if currlayer == endlayer:
+                return [[currnode]]
+            toret = []
+            for out in self.nodes[currlayer][currnode]['out']:
+                for path in recur_DFS2(currlayer + 1, out, endlayer):
+                    toret.append([currnode] + path)
+                    # yield [currnode] + path
+            return toret
+
+        for node in self.nodes[startlayer]:
+            for newpath in recur_DFS2(startlayer, node, endlayer):
+                toadd = newpath[0]
+                for node in newpath[1:]:
+                    toadd += (node[-1],)
+                yield (startlayer, toadd)
         
-        return paths    
-    @cache
-    def recur_DFS2(self, currlayer, currnode, endlayer):  
-        if currlayer == endlayer:
-            return [[]]
-        toret = []
-        for out in self.nodes[currlayer][currnode]['out']:
-            for path in self.recur_DFS2(currlayer + 1, out, endlayer):
-                toret.append([currnode] + path)
-            
+
+    def connected_layer_sets(self):
+        if self.DFS_connectivity():
+            return [(self.layers[0], self.layers[-1])]
+        for toplayer in self.layers[::-1][1:]:
+            if self.DFS_connectivity((self.layers[0], toplayer)):
+                break
+        for bottomlayer in self.layers[1:]:
+            if self.DFS_connectivity((bottomlayer, self.layers[-1])):
+                break
+        return 
+    def largest_layer_set(self):
+        if self.DFS_connectivity():
+            return {(self.layers[0], self.layers[-1])}
+        lower = iter(self.layers)
+        upper = iter(self.layers[::-1])
+        prevlow = next(lower)
+        currlow = next(lower)
+        prevup = next(upper)
+        currup = next(upper)
+
         
-        return toret
-    def DFS_connectivity(self, bounds = None):
-        if not bounds:
-            bounds = (self.layers[0], self.layers[-1])
+
+    def DFS_connectivity(self, bounds):
+        bounds = (self.layers[0], self.layers[-1])
+        currmax = 0
+        @cache
+        def recursion(currlayer, currnode):
+            nonlocal currmax, bounds
+            if currlayer == bounds[-1]:
+                return True
+            for out in self.nodes[currlayer][currnode]['out']:
+                if recursion(currlayer + 1, out):
+                    return True
+            if not self.nodes[currlayer][currnode]['out']:
+                currmax = max((currmax, currlayer - bounds[0]))
+            return False
         for node in self.nodes[bounds[0]]:
-            if self.recur_DFS_connectivity(0, node, bounds[1]):
-                return True
-        return False
-    @cache
-    def recur_DFS_connectivity(self, currlayer, currnode, upperbound):
-        if currlayer == upperbound:
-            return True
-        for out in self.nodes[currlayer][currnode]['out']:
-            if self.recur_DFS_connectivity(currlayer + 1, out, upperbound):
-                return True
-        return False
+            if recursion(0, node):
+                return True, bounds[-1] - bounds[0]
+        return False, currmax
+
                 
 
 
@@ -222,13 +248,13 @@ class LayeredDiGraph:
             mat = mat @ nextmat
         return np.sum(mat)
 
-    
+
 class fitfinder:
-    
-    def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory\\'):        
+
+    def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory\\', coarsefitter = None, coarsecut = 1):        
         currtime = time.time()
         self.prog = prog
-        cat = CatFile(fileloc + 'base.cat')
+
         self.startwin = startwin
         self.ratwin = ratwin
         if derwin:
@@ -239,18 +265,9 @@ class fitfinder:
 
         with open(fileloc + 'peaklist.txt', 'r') as f:
             self.peaks = np.array(f.readlines(), dtype = float)
-        progtranses = []
+
         self.progjkk = []
-        for trans in cat.transes:
-            if specwindow[0] < trans[-2] < specwindow[1]:
-                if trans[3] == twomats.progsT[prog]:
-                    progtranses += [trans]
-                    self.progjkk += [tuple(trans[1] + trans[2])]
-        self.preds = [trans[-2] for trans in progtranses]
-        self.J0 = self.progjkk[0][0]
-        self.span = self.progjkk[-1][0] - self.J0 + 1
-        (dJ, T1, T2) = twomats.progsT[self.prog]
-        self.jkk = [twomats.JKK(i + self.J0, T1) + twomats.JKK(i - dJ + self.J0, T2) for i in range(self.span)]
+        self.loadpreds(fileloc, specwindow, prog)
         newtime = time.time()
         print(f'Read cat file: {newtime - currtime:.02} s')
         currtime = newtime
@@ -265,7 +282,9 @@ class fitfinder:
         print(f'Build derivative net: {newtime - currtime:.02} s')
         currtime = newtime
         
-        self.dernet.DFS_connectivity()
+        connected, depth = self.dernet.DFS_connectivity((self.dernet.layers[0], self.dernet.layers[-1]))
+        if not connected:
+            raise Exception('Paths not connected - use less stringent windows or smaller frequency range.')
         
         newtime = time.time()
         print(f'Check connectivity: {newtime - currtime:.02} s')
@@ -276,24 +295,45 @@ class fitfinder:
         print(f'Prune dernet: {newtime - currtime:.02} s')
         currtime = newtime
 
-        self.paths = [[(jkk, peak) for jkk, peak in zip(self.jkk[path[0]:], path[1])]
-                      for path in self.dernet.DFS2()]
+        if coarsefitter != None:
+            self.getfits_coarsefit(coarsefitter, coarsecut)
+        else:
+            self.getfits_nocoarsefit()
+
+        
+        # [[(jkk, peak) for jkk, peak in zip(self.jkk[path[0]:], path[1])]
+        #               for path in self.dernet.DFS2()
+        #               if fitter.usekernel(path[1])['rms'] < coarsecut]
         newtime = time.time()
         print(f'Found all paths: {newtime - currtime:02f} s')
         currtime = newtime
-        self.maxpath = len(self.paths[0])
+        try:
+            self.maxpath = len(self.paths[0])
+        except IndexError:
+            raise Exception('No fits found')
+        self.writelins()
         
-    
+    def loadpreds(self, fileloc, specwindow, prog):
+        cat = CatFile(fileloc + 'base.cat')
+        progtranses = []
+        for trans in cat.transes:
+            if specwindow[0] < trans[-2] < specwindow[1]:
+                if trans[3] == twomats.progsT[prog]:
+                    progtranses.append(trans)
+                    self.progjkk += [tuple(trans[1] + trans[2])]
+        self.preds = [trans[-2] for trans in progtranses]
+        self.transes= [(trans[1], trans[2]) for trans in progtranses]
+        self.J0 = self.progjkk[0][0]
+        self.span = self.progjkk[-1][0] - self.J0 + 1
+        # (dJ, T1, T2) = twomats.progsT[self.prog]
+        # self.jkk = [twomats.JKK(i + self.J0, T1) + twomats.JKK(i - dJ + self.J0, T2) for i in range(self.span)]
+
     
     def writelins(self):
-        indops = twomats.progsT[self.prog]
         for i, path in enumerate(self.paths):
             writelist = []
             newlin = LinFile(f'activememory\\basefitbank\\{self.prog}_{i}.lin')
-            for J, peak in enumerate(path[1]):
-                jkk = self.JKK(J + self.J0 + path[0], indops[1]) + self.JKK(J - indops[0], indops[2])
-                writelist += [(peak, jkk)]
-            newlin.assign(writelist)
+            newlin.assign([(pair[1], list(pair[0][0]) + list(pair[0][1])) for pair in path])
             newlin.makefile()
             # print(f'activememory\\basefitbank\\{self.prog}_{i}.lin')
     
@@ -302,18 +342,15 @@ class fitfinder:
         currstart = 0
         for jkk, pred in zip(self.progjkk, self.preds):
             changed = False
-            for i, peak in enumerate(self.peaks[currstart:]):
-                
+            for i, peak in enumerate(self.peaks[currstart:]):    
                 if pred - self.startwin < peak:
                     if not changed:
                         currstart += i
                         changed = True
-
                     if pred + self.startwin < peak:
                         break
                     self.net.add_node(jkk[0] - self.J0, peak)
         # Make initial self.network based on ratio test
-        # print(len(self.net.nodes))
         trycount = 0
         for j, (pred1, layer1, pred2, layer2) in enumerate(zip(self.preds[:-1], self.net.nodes[:-1], 
                                                                 self.preds[1:], self.net.nodes[1:])):
@@ -356,21 +393,44 @@ class fitfinder:
                     deleted += 1
         print(deleted)
 
-    @staticmethod
-    def JKK(J, T):       
-        return (J, (T + 1) // 2, (2 * J - T + 1) // 2)
-    def pathcleanup(self, startJ, peaks):
-        (dJ, T1, T2) = twomats. progsT[self.prog]
-        startJ += self.J0
-        return [(self.JKK(i + startJ, T1) + self.JKK(i - dJ + startJ, T2), peak) for i, peak in enumerate(peaks)]
+    def getfits_nocoarsefit(self):
+        self.paths = []
+        self.totpathnum = 0
+        for path in self.dernet.DFS2():
+            self.totpathnum += 1
+            # print(fitter.usekernel(path[1]))
+            self.paths.append([(jkk, peak) for jkk, peak in zip(self.transes, path[1])])
+
+
+    def getfits_coarsefit(self, fitter, coarsecut):
+        self.paths = []
+        self.totpathnum = 0
+        fitter.make_kernel(self.transes)
+        for path in self.dernet.DFS2():
+            self.totpathnum += 1
+            if fitter.use_kernel(path[1])['rms'] < coarsecut:
+                print(fitter.use_kernel(path[1]))
+                self.paths.append([(jkk, peak) for jkk, peak in zip(self.transes, path[1])])
+
+
+    # @staticmethod
+    # def JKK(J, T):       
+    #     return (J, (T + 1) // 2, (2 * J - T + 1) // 2)
+    # def pathcleanup(self, startJ, peaks):
+    #     (dJ, T1, T2) = twomats. progsT[self.prog]
+    #     startJ += self.J0
+    #     return [(self.JKK(i + startJ, T1) + self.JKK(i - dJ + startJ, T2), peak) for i, peak in enumerate(peaks)]
       
     
     
     
 if __name__ == '__main__':
-    # findnet = fitfinder(100, 10, 0, 'Ra J1J-', (6000, 18000), 'dummymem\\')
+    findnet = fitfinder(500, 50, 5, 'Ra J1J-', (6000, 18000), 'dummymem\\')
+    tree = gridvectree(fitter.gridmat)
+    #print([pair[1] for pair in findnet.paths[0]])
+    tree.use_tree([pair[1] for pair in findnet.paths[0]])
     # sttime = time.time()
-    findnet = fitfinder(400, 40, 4, 'Rb J1J', (4000, 12000), 'activememory\\')
+    # findnet = fitfinder(400, 40, 4, 'Rb J1J', (4000, 12000), 'activememory\\')
     # print(time.time() - sttime)
     # print(len(findnet.paths))
     # paths = findnet.pathfinder()
