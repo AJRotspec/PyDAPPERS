@@ -12,13 +12,21 @@ class twomats:
               'Ra J2J-': (1, 3, 3), 'Ra J2J+': (1, 4, 4), 'Qb J1J-': (0, 2, 0),
               'Rb J0J': (1, 0, 1), 'Rb J1J': (1, 1, 0), 'Rb 220': (1, 4, 1),
               'Rb 221': (1, 3, 2), 'Rb 330': (1, 6, 3), 'Rb 331': (1, 5, 4),
-              'Rc 220': (1, 4, 2), 'Rc 221': (1, 3, 1)
+              'Rc 110': (1, 2, 0), 'Rc J0J': (1, 0, 2), 'Rc 221': (1, 3, 1),
+              'Rc 220': (1, 4, 2), 'Rc 331': (1, 5, 3), 'Rc 330': (1, 6, 4),
+              'Qa 221': (0, 3, 0), 'Qa 330': (0, 6, 1), 'Qa 331': (0, 5, 2),
+              'Qa 440': (0, 8, 3), 'Qa 441': (0, 7, 4), 'Qa JKJ-K': (0, 2, 1),
+              'Qb 220': (0, 4, 2), 'Qb 221': (0, 3, 1), 'Qb 330': (0, 6, 4),
+              'Qb 331': (0, 5, 3), 'Qb 440': (0, 8, 6), 'Qb 441': (0, 7, 5),
+              'Qc 220': (0, 4, 1), 'Qc 220': (0, 3, 2),
                  }
 
     @staticmethod
     def JKK(J, T):       
         return (J, (T + 1) // 2, (2 * J - T + 1) // 2)
 
+    def JT(jkk):
+        return jkk[0], jkk[0] + jkk[1] - jkk[2]
     @staticmethod
     def progify(jkk1, jkk2):
         toret = [jkk1[0] - jkk2[0]]
@@ -268,7 +276,7 @@ class twomats:
         for i in range(10):
             ers = []
             jac = []
-            for edge in self._edges.values:
+            for edge in self._edges.values():
                 jac += [edge.grad]
                 ers += [edge.obs - edge.nu]
             jac = np.array(jac)
