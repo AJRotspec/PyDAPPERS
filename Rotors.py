@@ -303,5 +303,3 @@ class twomats:
         return self.ABC, np.sqrt(np.diagonal(np.linalg.inv(jac.T@jac)) / len(ers)) * stdev,\
             np.linalg.norm(ers) / np.sqrt(len(ers)), ers
 
-if __name__ == '__main__':
-    print([_ for _ in twomats.seriesJKK('Qb J1J-')])

@@ -12,10 +12,7 @@ from spfitspcat import ParVar
 import os
 import shutil
 from subprocess import call, DEVNULL
-from coarsefit import progfitter
-import threading
 
-import time
 
 class spfitframe(baseframe):
     def __init__(self, parent, row = 3, column = 1):
@@ -25,12 +22,6 @@ class spfitframe(baseframe):
         frame.grid_propagate(False)
         self.Title(frame, text = 'Run SPFIT').grid(row = 0, column = 0, columnspan = 3, sticky = 'ew')
         
-        # gridstat = self.Label(frame, text = 'Initializing grid')
-        # gridstat.grid(row = 2, column = 1, columnspan= 2)
-        # def initialize_fitter():
-        #     self.fitter = progfitter()
-        #     gridstat.configure(text = 'Grid initialized')
-        # threading.Thread(target = initialize_fitter, daemon=True).start()
         
         def runfits():
             runfitswindow(root, self)
@@ -47,9 +38,6 @@ class spfitframe(baseframe):
         # self.Button(frame, text = 'Fit Polish', command = fitpolish).grid(row = 1, column = 2)
         for i in range(3):
             frame.grid_columnconfigure(i, weight=1)  
-        # def gridfit():
-        #     gridfitwindow(root, self)
-        # self.Button(frame, text = 'Grid Fit', command = gridfit).grid(row = 2, column = 0)
 
 
 
@@ -181,11 +169,6 @@ class runfitswindow(fitbankbase):
                 
             self.parfil.makefile()     
             proginuse = root.getvar(name = 'proginuse')
-            # rawfits = root.getvar(name = 'rawfits')
-            # for i, fit in enumerate(rawfits):
-            #     newlin = LinFile(f'activememory\\basefitbank\\{proginuse}_{i}.lin')
-            #     newlin.assign([(pair[1], pair[0]) for pair in fit])
-            #     newlin.makefile()
             fitlist = [f for f in os.listdir('activememory\\basefitbank\\') if f.endswith('lin') and proginuse in f]
 
             reslist = []

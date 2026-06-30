@@ -104,9 +104,6 @@ class quantumfiltwindow(baseframe):
 
 
         self. setup_gridframe()
-        # save_button = tk.Button(input_window, text="Save", command=save)
-        # save_button.pack(pady=10)
-        # proginuse = tk.StringVar(master = root, value = 'hi')
 
     def setup_displayframe(self):
         self.displayframe = self.Frame(self.branchwindow)
