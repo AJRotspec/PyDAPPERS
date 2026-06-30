@@ -194,7 +194,7 @@ class progfitter:
         return rawlist
 
     def grid_diff(self, trans):
-        jtup, jtdown = tuple(map(twomats.indfinder, twomats.jkkreader(trans)))
+        jtup, jtdown = tuple(map(twomats.JT, twomats.jkkreader(trans)))
         return np.array(self.alllams[jtup[0]][jtup[1]]) - np.array(self.alllams[jtdown[0]][jtdown[1]])
     
 
@@ -208,8 +208,10 @@ class progfitter:
 
     def make_kernel(self, tranlist):
         self.tranlist = tranlist
-        Jvec = np.array([jkk1[0] for (jkk1, jkk2) in tranlist], dtype = float)
+        Jvec = np.array([jkk1[0] * (jkk1[0] + 1) - jkk2[0] * (jkk2[0] + 1) for (jkk1, jkk2) in tranlist], dtype = float)
         Jmag = np.linalg.norm(Jvec)
+        if Jmag < 1:
+            raise Exception('magnitude of J vector suggests pure q branch transitions')
         Jvec /= Jmag
         Evecs = [self.grid_diff(tran) for tran in tranlist]
         toret = []
@@ -240,14 +242,14 @@ class progfitter:
             return {'rms': 1e8, 'A': 0, 'B': 0 , 'C': 0, 'num': 0}
         currres = None
         bestind = np.argmax(self.gridmat[bestind - grade: bestind + grade] @ series) + bestind - grade
-        res = veclist[bestind]
-        currres = (bestind, res[1], res[2], np.dot(series, res[0]))
-        A = ((Jmag, currres[1]), (0, currres[2]))
+        Eperp, ov, Emag = veclist[bestind]
+        Edot = np.dot(Eperp, series)
+        A = ((Jmag, ov), (0, Emag))
         Adet = A[0][0] * A[1][1]
-        solvec = (np.array(((A[1][1], -A[0][1]), (0, A[0][0]))) @ (np.dot(Jvec, series), currres[-1]) / Adet)
-        A, C = np.array(((.5, 1), (.5, -1))) @ solvec
+        solvec = (np.array(((A[1][1], -A[0][1]), (0, A[0][0]))) @ (np.dot(Jvec, series), Edot) / Adet)
+        A, C = np.array(((1, 1), (1, -1))) @ solvec
         B = (self.kappa[bestind] * (A - C) + A + C) * .5
-        return {'rms': np.sqrt(np.linalg.norm(series) ** 2 - currres[-1] ** 2 - np.dot(Jvec, series) ** 2) / np.sqrt(n),
+        return {'rms': np.sqrt(np.linalg.norm(series) ** 2 - Edot ** 2 - np.dot(Jvec, series) ** 2) / np.sqrt(n),
                 'A':A, 'B': B, 'C': C, 'num': n
                 }
 
