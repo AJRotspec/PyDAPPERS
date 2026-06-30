@@ -108,6 +108,6 @@ class searchfitsframe(baseframe):
         self.Checkbutton(self.frame, variable = self.usecoarsefit).grid(row = self.currrow, column = 1)
         self.currrow += 1
         self.Label(self.frame, text = 'Coarsefit cutof?').grid(row = self.currrow, column = 0)
-        self.coarsefitcutoff = DoubleVar(self.frame)
+        self.coarsefitcutoff = DoubleVar(self.frame, value = 0.1)
         self.Entry(self.frame, textvariable = self.coarsefitcutoff).grid(row = self.currrow, column = 1)
         self.currrow += 1
