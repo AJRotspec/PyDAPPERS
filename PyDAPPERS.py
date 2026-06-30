@@ -51,32 +51,28 @@ The spfit frame has three buttons, intended to be used from left to right
     can mix and match the subsets together in order to create a final 
     version of the fit
 
-    Fit Polish allows the user to finalize a fit
+    When finished, Fit Polish allows the user to finalize a fit.
 
 
 """
 
 
 # Do setup
-if not 'longtermmem' in os.listdir():
-    os.mkdir('longtermmem')
-    with open('longtermmem\\path.txt', 'w') as f:
-        f.write('C:/')
-    with open('longtermmem\\abc.txt', 'w') as f:
-        f.write('30000\n2000\n1000')
-    with open('longtermmem\\bounds.txt', 'w') as f:
-        f.write('6000\n18000')
-    os.mkdir('activememory')
-    os.mkdir('activememory\\basefitbank')
-    os.mkdir('activememory\\finalfitbank')
 
                       
 
 class mainwindow():
+    filepaths = [
+        'activememory\\basefitbank',
+        'activememory\\finalfitbank',
+        'longtermmem'
+    ]
     def __init__(self):
         self.root = tk.Tk()
         self.root.title('PyDAPPERS ' + version)
         self.root.configure(background = 'black')
+
+        self.check_filetree()
         # Define all 'global' variables
         self.initialize_globals()
 
@@ -122,12 +118,34 @@ class mainwindow():
         
         self.root.mainloop()
 
+    def check_filetree(self):
+        for path in self.filepaths:
+            os.makedirs(path, exist_ok = True)
+        if not 'path.txt' in os.listdir('longtermmem'):
+            with open('longtermmem\\path.txt', 'w') as f:
+                f.write('C:/')
+            
+        if not 'abc.txt' in os.listdir('longtermmem'):            
+            with open('longtermmem\\abc.txt', 'w') as f:
+                f.write('30000\n2000\n1000')
+
+        if not 'bounds.txt' in os.listdir('longtermmem'):
+            with open('longtermmem\\bounds.txt', 'w') as f:
+                f.write('6000\n18000')
+
+        if not 'peaklist.txt' in os.listdir('activememory'):
+            with open('activememory\\peaklist.txt', 'w') as f:
+                f.write('\n')
+
+
     def initialize_globals(self):
         with open('longtermmem\\path.txt', 'r') as f:
             defaultpath = f.read()
         self.defaultpath = tk.StringVar(self.root, name = 'defaultpath', value = defaultpath)
         
-        self.peaknum = tk.IntVar(self.root, name = 'peaknum', value = 0)
+        with open('activememory\\peaklist.txt', 'r') as f:
+            peaknum = len(f.readlines())
+        self.peaknum = tk.IntVar(self.root, name = 'peaknum', value = peaknum)
         
         with open('longtermmem\\bounds.txt', 'r') as f:
             lower, upper = tuple(map(int, f.readlines()))
