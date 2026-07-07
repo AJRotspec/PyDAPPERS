@@ -14,6 +14,6 @@ Please note that this code has principally been tested on molecules that I had a
 
 Made using
 Python 3.10.5
-numpy 1.26.4
+numpy 1.24.4
 matplotlib 3.10.9
 scipy 1.9.0
