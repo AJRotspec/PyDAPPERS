@@ -92,7 +92,7 @@ class mainwindow():
             #     pass
             #     # self.spfit.gridstopevent.set()
             #     # self.spfit.gridthread.join()
-            closewind.Label(closewind.wind, text = 'Retain active memory? (Not recommended)').pack()
+            closewind.Label(closewind.wind, text = 'Retain active memory?').pack()
             def killactive():
                 try:
                     
@@ -108,12 +108,12 @@ class mainwindow():
                 except Exception as error:
                     print(error)
                 self.root.destroy()
-            # def keepactive():
-            #     self.root.destroy()
-            # closewind.Button(closewind.wind, text = 'Keep active memory', command = keepactive).pack()
-            # closewind.Button(closewind.wind, text = 'Delete active memory', command = killactive).pack()
+            def keepactive():
+                self.root.destroy()
+            closewind.Button(closewind.wind, text = 'Keep active memory', command = keepactive).pack()
+            closewind.Button(closewind.wind, text = 'Delete active memory', command = killactive).pack()
 
-            killactive()
+            # killactive()
         self.root.protocol("WM_DELETE_WINDOW", on_closing)
         
         self.root.mainloop()
