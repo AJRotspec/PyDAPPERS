@@ -58,8 +58,8 @@ class searchfitsframe(baseframe):
         def findfits():
             sttime = time.time()
             windows = [float(entry.get()) for entry in windowvars]
-            for fil in os.listdir('activememory\\basefitbank'):
-                os.remove('activememory\\basefitbank\\' + fil)
+            for fil in os.listdir(os.path.join('activememory', 'basefitbank')):
+                os.remove(os.path.join('activememory', 'basefitbank', fil))
             
             if self.usecoarsefit.get():
                 coarsefitter = self.fitter
@@ -72,7 +72,7 @@ class searchfitsframe(baseframe):
                                     parent.proginuse.get(), 
                                     (parent.freqbounddown.get(),
                                     parent.freqboundup.get()),
-                                    'activememory\\',
+                                    'activememory',
                                     coarsefitter, coarsecut)
                 fittime.configure(text = str(round(time.time() - sttime, 3)))
                 

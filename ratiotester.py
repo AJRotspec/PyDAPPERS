@@ -11,6 +11,7 @@ import numpy as np
 import time
 import matplotlib.pyplot as plt
 from functools import cache, lru_cache
+import os
 # from scipy.sparse import coo_array
 # from layereddigraph import LayeredDiGraph
 
@@ -218,9 +219,9 @@ class LayeredDiGraph:
         return np.sum(mat)
 
 
-class fitfinder:
+class wfitfinder:
 
-    def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory\\', coarsefitter = None, coarsecut = 1):        
+    def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory', coarsefitter = None, coarsecut = 1):        
         currtime = time.time()
         self.prog = prog
 
@@ -232,7 +233,7 @@ class fitfinder:
             # Arbitrary large value
             self.derwin = 100
 
-        with open(fileloc + 'peaklist.txt', 'r') as f:
+        with open(os.path.join(fileloc, 'peaklist.txt'), 'r') as f:
             self.peaks = np.array(f.readlines(), dtype = float)
 
         self.progjkk = []
@@ -302,10 +303,10 @@ class fitfinder:
     def writelins(self):
         for i, path in enumerate(self.paths):
             writelist = []
-            newlin = LinFile(f'activememory\\basefitbank\\{self.prog}_{i}.lin')
+            newlin = LinFile(os.path.join('activememory', 'basefitbank', f'{self.prog}_{i}.lin'))
             newlin.assign([(pair[1], list(pair[0][0]) + list(pair[0][1])) for pair in path])
             newlin.makefile()
-            # print(f'activememory\\basefitbank\\{self.prog}_{i}.lin')
+            # print(os.path.join('activememory', 'basefitbank', f'{self.prog}_{i}.lin'))
     
     def buildnet(self):     
         self.net = LayeredDiGraph(self.span)

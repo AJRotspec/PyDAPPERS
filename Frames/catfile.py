@@ -8,6 +8,7 @@ from Frames.styleguide import baseframe
 from tkinter import Toplevel
 from spfitspcat import ParVar, IntFile, CatFile
 import shutil
+import os
 class catfileframe(baseframe):
     def __init__(self, parent, row = 2, column = 0):
         root = parent.root
@@ -16,8 +17,8 @@ class catfileframe(baseframe):
         banner = self.Title(frame, text = 'Pickett .cat File')
         banner.grid(row = 0, column = 0, sticky = 'ew', columnspan = 2)#, padx = 50, pady=5)  
         def catloader(fil):
-            shutil.copy(fil, 'activememory\\base.cat')
-            tempcat = CatFile('activememory\\base.cat')
+            shutil.copy(fil, os.path.join('activememory', 'base.cat'))
+            tempcat = CatFile(os.path.join('activememory', 'base.cat'))
             parent.catlines.set(tempcat.transes)
 
          
@@ -33,7 +34,7 @@ class catfileframe(baseframe):
             input_window.title('Generate .cat File')
             labels = []
             entries = []
-            with open('longtermmem\\abc.txt', 'r') as f:
+            with open(os.path.join('longtermmem', 'abc.txt'), 'r') as f:
                 defaults = f.readlines()
 
             defaults += ['1', '1', '1']
@@ -48,17 +49,17 @@ class catfileframe(baseframe):
                 entries[-1].pack(padx=10)
             def save():
                 values = [float(entry.get()) for entry in entries]
-                with open('longtermmem\\abc.txt', 'w') as f:
+                with open(os.path.join('longtermmem', 'abc.txt'), 'w') as f:
                     for val in values[:3]:
                         f.write(str(val) + '\n')
-                varfil = ParVar('activememory\\base.var', propdict = {'pars':{'10000': (values[0], 1, 'A'),
+                varfil = ParVar(os.path.join('activememory', 'base.var'), propdict = {'pars':{'10000': (values[0], 1, 'A'),
                                                               '20000': (values[1], 1, 'B'),
                                                               '30000': (values[2], 1, 'C')}})
                 varfil.makefile()
-                intfil = IntFile('activememory\\base.int', values[3:])
+                intfil = IntFile(os.path.join('activememory', 'base.int'), values[3:])
                 intfil.makefile()
                 varfil.makecat()
-                newcat = CatFile('activememory\\base.cat')
+                newcat = CatFile(os.path.join('activememory', 'base.cat'))
                 parent.catlines.set(newcat.transes)
                 input_window.destroy()
 

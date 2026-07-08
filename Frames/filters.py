@@ -8,6 +8,7 @@ from Frames.styleguide import baseframe
 import tkinter as tk
 from tkinter import Toplevel, ttk
 from Rotors import twomats
+import os
 
 class quantumfilterframe(baseframe):
     def __init__(self, parent, row = 3, column = 0):
@@ -72,7 +73,7 @@ class quantumfilterframe(baseframe):
         # print(tran)
         self.parent.Jboundup.set(tran[1][0])
         
-        with open('longtermmem\\bounds.txt', 'w') as f:
+        with open(os.path.join('longtermmem', 'bounds.txt'), 'w') as f:
             f.write(f'{lower}\n{upper}')
 
    

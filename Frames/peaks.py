@@ -13,7 +13,7 @@ import shutil
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from scipy.signal import find_peaks, savgol_filter
 import numpy as np
-
+import os
 class peaklistframe(baseframe):
     def __init__(self, parent, row = 1, column = 0):
         self.parent = parent
@@ -33,11 +33,11 @@ class peaklistframe(baseframe):
         findbutton.grid(row = 1, column = 0, padx = 10, pady = 10)
         
         def peakloader(fil):
-            shutil.copy(fil, 'activememory\\peaklist.txt')
-            with open('activememory\\peaklist.txt', 'r') as f:
+            shutil.copy(fil, os.path.join('activememory', 'peaklist.txt'))
+            with open(os.path.join('activememory', 'peaklist.txt'), 'r') as f:
                 lines = f.readlines()
             lines.sort(key = lambda x: float(x))
-            with open('activememory\\peaklist.txt', 'w') as f:
+            with open(os.path.join('activememory', 'peaklist.txt'), 'w') as f:
                 f.writelines(lines)
                 self.parent.peaknum.set(len(lines))
          
@@ -47,7 +47,7 @@ class peaklistframe(baseframe):
         
         viewbutton = self.Button(frame, text = 'View Peaklist')
         def viewpeaks():
-            txtreadwindow(root, 'activememory\\peaklist.txt')
+            txtreadwindow(root, os.path.join('activememory', 'peaklist.txt'))
         viewbutton.configure(command = viewpeaks)
         viewbutton.grid(row = 3, column = 1, padx = 10, pady = 10)
         for i in range(2):
@@ -141,7 +141,7 @@ class plotframe(baseframe):
             fits = [self.quadfit(spe.ys[bound[0]: bound[1]]) for bound in bounds]
             xpeaks = [indtox(fit[1] + bound[0]) for fit, bound in zip(fits, bounds)]
 
-            with open('activememory\\peaklist.txt', 'w') as f:
+            with open(os.path.join('activememory', 'peaklist.txt'), 'w') as f:
                 for peak in xpeaks:
                     f.write(f'{peak}\n')
             homeframe.parent.peaknum.set(len(peaks))

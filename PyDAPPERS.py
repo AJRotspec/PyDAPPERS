@@ -63,8 +63,8 @@ The spfit frame has three buttons, intended to be used from left to right
 
 class mainwindow():
     filepaths = [
-        'activememory\\basefitbank',
-        'activememory\\finalfitbank',
+        os.path.join('activememory', 'basefitbank'),
+        os.path.join('activememory', 'finalfitbank'),
         'longtermmem'
     ]
     def __init__(self):
@@ -97,14 +97,14 @@ class mainwindow():
                 try:
                     
                 #     for fil in os.listdir('activememory'):
-                #         if not os.path.isdir('activememory\\' + fil):
-                #             os.remove('activememory\\' + fil)
-                    for fil in os.listdir('activememory\\basefitbank'):
-                        if not os.path.isdir('activememory\\basefitbank\\' + fil):
-                            os.remove('activememory\\basefitbank\\' + fil)
-                    for fil in os.listdir('activememory\\finalfitbank'):
-                        if not os.path.isdir('activememory\\finalfitbank\\' + fil):
-                            os.remove('activememory\\finalfitbank\\' + fil)
+                #         if not os.path.isdir(os.path.join('activememory', fil)):
+                #             os.remove(os.path.join('activememory', fil))
+                    for fil in os.listdir(os.path.join('activememory', 'basefitbank')):
+                        if not os.path.isdir(os.path.join('activememory', 'basefitbank', fil)):
+                            os.remove(os.path.join('activememory', 'basefitbank', fil))
+                    for fil in os.listdir(os.path.join('activememory', 'finalfitbank')):
+                        if not os.path.isdir(os.path.join('activememory', 'finalfitbank', fil)):
+                            os.remove(os.path.join('activememory', 'finalfitbank', fil))
                 except Exception as error:
                     print(error)
                 self.root.destroy()
@@ -122,32 +122,32 @@ class mainwindow():
         for path in self.filepaths:
             os.makedirs(path, exist_ok = True)
         if not 'path.txt' in os.listdir('longtermmem'):
-            with open('longtermmem\\path.txt', 'w') as f:
+            with open(os.path.join('longtermmem', 'path.txt'), 'w') as f:
                 f.write('C:/')
             
         if not 'abc.txt' in os.listdir('longtermmem'):            
-            with open('longtermmem\\abc.txt', 'w') as f:
+            with open(os.path.join('longtermmem', 'abc.txt'), 'w') as f:
                 f.write('30000\n2000\n1000')
 
         if not 'bounds.txt' in os.listdir('longtermmem'):
-            with open('longtermmem\\bounds.txt', 'w') as f:
+            with open(os.path.join('longtermmem', 'bounds.txt'), 'w') as f:
                 f.write('6000\n18000')
 
         if not 'peaklist.txt' in os.listdir('activememory'):
-            with open('activememory\\peaklist.txt', 'w') as f:
+            with open(os.path.join('activememory', 'peaklist.txt'), 'w') as f:
                 f.write('\n')
 
 
     def initialize_globals(self):
-        with open('longtermmem\\path.txt', 'r') as f:
+        with open(os.path.join('longtermmem', 'path.txt'), 'r') as f:
             defaultpath = f.read()
         self.defaultpath = tk.StringVar(self.root, name = 'defaultpath', value = defaultpath)
         
-        with open('activememory\\peaklist.txt', 'r') as f:
+        with open(os.path.join('activememory', 'peaklist.txt'), 'r') as f:
             peaknum = len(f.readlines())
         self.peaknum = tk.IntVar(self.root, name = 'peaknum', value = peaknum)
         
-        with open('longtermmem\\bounds.txt', 'r') as f:
+        with open(os.path.join('longtermmem', 'bounds.txt'), 'r') as f:
             lower, upper = tuple(map(int, f.readlines()))
         self.freqboundup = tk.IntVar(self.root, name = 'freqboundup', value = upper)
         self.freqbounddown = tk.IntVar(self.root, name = 'freqbounddown', value = lower)
@@ -156,7 +156,7 @@ class mainwindow():
 
         self.proginuse = tk.StringVar(self.root, name = 'proginuse', value = 'None selected')
         
-        tempcat = CatFile('activememory\\base.cat')
+        tempcat = CatFile(os.path.join('activememory', 'base.cat'))
         self.catlines = tk.Variable(self.root, name = 'catlines', value = tempcat.transes)
         self.rawfits = tk.Variable(self.root, name = 'rawfits')
         self.fitbankfits = tk.Variable(self.root, name = 'fitbankfits', value = [])

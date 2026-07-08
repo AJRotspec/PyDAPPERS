@@ -340,7 +340,7 @@ class ParVar:
         pass
         
     def makecat(self):
-        call(['Rot\\spcat', os.path.join(os.getcwd(), self.basename + self.parvar)],
+        call([os.path.join('Rot', 'spcat'), os.path.join(os.getcwd(), self.basename + self.parvar)],
              stdout = DEVNULL, shell = True)
         return f"{self.basename}.cat"
 
@@ -471,11 +471,11 @@ class FitFile:
             
 if __name__ == '__main__':
     # values = [5, 4, 3, 1, 1, 1]
-    # varfil = ParVar('activememory\\base.var', propdict = {'pars':{'10000': (values[0], 1, 'A'),
+    # varfil = ParVar(os.path.join('activememory', 'base.var'), propdict = {'pars':{'10000': (values[0], 1, 'A'),
     #                                              '20000': (values[1], 1, 'B'),
     #                                              '30000': (values[2], 1, 'C')}})
     # varfil.makefile()
-    # intfil = IntFile('activememory\\base.int', values[3:])
+    # intfil = IntFile(os.path.join('activememory', 'base.int'), values[3:])
     # intfil.makefile()
     # varfil.makecat()
     l = LinFile('a.lin')

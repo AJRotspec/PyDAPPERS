@@ -6,7 +6,7 @@ Created on Thu May  8 14:24:48 2025
 """
 from Frames.styleguide import baseframe
 from tkinter import filedialog, PhotoImage
-
+import os
 class optionsframe(baseframe):
     def __init__(self, parent, row = 1, column = 2):
         root = parent.root
@@ -35,7 +35,7 @@ class optionsframe(baseframe):
             
             defaultpath = filedialog.askdirectory(title = 'Select new default path',
                                               initialdir = root.getvar(name = 'defaultpath'))
-            with open('longtermmem\\path.txt', 'w') as f:
+            with open(os.path.join('longtermmem', 'path.txt'), 'w') as f:
                 f.write(defaultpath)
             root.setvar(name = 'defaultpath', value = defaultpath)
 
