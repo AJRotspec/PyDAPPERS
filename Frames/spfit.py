@@ -109,7 +109,7 @@ class fitbankbase(baseframe):
             self.toggles += [fix]
             
         #putting in defaults from longtermmem
-        with open('longtermmem\\abc.txt', 'r') as f:
+        with open(os.path.join('longtermmem', 'abc.txt'), 'r') as f:
             ABCdef = f.readlines()
         for ent, abc in zip(self.entries, ABCdef):
             ent.insert(0, abc)
@@ -142,7 +142,7 @@ class fitbankbase(baseframe):
 
 
 class runfitswindow(fitbankbase):
-    parpath = 'activememory\\fitstart.par'
+    parpath = os.path.join('activememory', 'fitstart.par')
     treeheadings = ('A', 'B', 'C', 'rms', 'progression', 'number of lines')
 
     def __init__(self, root, parent):
@@ -152,7 +152,7 @@ class runfitswindow(fitbankbase):
             uncs = [1e-3 if fix.get() else 1e3 for fix in self.toggles]            
             # fixes = 
 
-            with open('longtermmem\\abc.txt', 'w') as f:
+            with open(os.path.join('longtermmem', 'abc.txt'), 'w') as f:
                 for val in values:
                     f.write(str(val) + '\n')
             self.parfil = ParVar(self.parpath, propdict = {'pars':{'10000': (values[0], uncs[0], 'A'),
@@ -169,21 +169,22 @@ class runfitswindow(fitbankbase):
                 
             self.parfil.makefile()     
             proginuse = root.getvar(name = 'proginuse')
-            fitlist = [f for f in os.listdir('activememory\\basefitbank\\') if f.endswith('lin') and proginuse in f]
+            fitlist = [f for f in os.listdir(os.path.join('activememory', 'basefitbank')) if f.endswith('lin') and proginuse in f]
 
             reslist = []
             
             def fittores(fitfile):
-                return (fitfile.vardict['A'], fitfile.vardict['B'], fitfile.vardict['C'], fitfile.rms, fitfile.name.split('\\')[-1][:-4], fitfile.assignments)
+                # return (fitfile.vardict['A'], fitfile.vardict['B'], fitfile.vardict['C'], fitfile.rms, fitfile.name.split('\\')[-1][:-4], fitfile.assignments)
+                return (fitfile.vardict['A'], fitfile.vardict['B'], fitfile.vardict['C'], fitfile.rms, os.path.basenamd(fitfile.name)[:-4], fitfile.assignments)
             
             for fit in fitlist:
-                shutil.copy('activememory\\fitstart.par', f'activememory\\basefitbank\\{fit[:-3]}par')
+                shutil.copy(os.path.join('activememory', 'fitstart.par'), os.path.join('activememory', 'basefitbank', f'{fit[:-3]}par'))
                 
-                call(['Rot\\spfit', f'activememory\\basefitbank\\{fit[:-3]}par'],
+                call([os.path.join('Rot', 'spfit'), os.path.join('activememory', 'basefitbank', f'{fit[:-3]}par')],
                      stdout = DEVNULL, shell = True)
-                os.remove(f'activememory\\basefitbank\\{fit[:-3]}par')
-                os.remove(f'activememory\\basefitbank\\{fit[:-3]}bak')
-                reslist += [FitFile(f'activememory\\basefitbank\\{fit[:-3]}fit')]
+                os.remove(os.path.join('activememory', 'basefitbank', f'{fit[:-3]}par'))
+                os.remove(os.path.join('activememory', 'basefitbank', f'{fit[:-3]}bak'))
+                reslist += [FitFile(os.path.join('activememory', 'basefitbank', f'{fit[:-3]}fit'))]
             reslist.sort(key = lambda x: x.rms)
             allfits = [fittores(res) for res in reslist]
             for fit in allfits:
@@ -196,7 +197,7 @@ class runfitswindow(fitbankbase):
             for item in self.fitdisp.selection():
                 self.fitdisp.delete(item)                
             for fit in tosend:
-                shutil.copy(f'activememory\\basefitbank\\{fit}.fit', f'activememory\\finalfitbank\\{fit}.fit')
+                shutil.copy(os.path.join('activememory', 'basefitbank', f'{fit}.fit'), os.path.join('activememory', 'finalfitbank', f'{fit}.fit'))
 
         sendtobankbutton = self.Button(self.bottomframe, text = 'Send Selected\nFits to Fitbank', command = send)
         sendtobankbutton.pack(side = 'right')
@@ -204,24 +205,25 @@ class runfitswindow(fitbankbase):
         viewbutton.pack(side = 'right')
         def viewfit():
             toread = self.fitdisp.item(self.fitdisp.selection()[0], "values")[4]
-            txtreadwindow(root, f'activememory\\basefitbank\\{toread}.fit')
+            txtreadwindow(root, os.path.join('activememory', 'basefitbank', f'{toread}.fit'))
         viewbutton.configure(command = viewfit)
         
         
 
 class fitbankwindow(fitbankbase):
-    parpath = 'activememory\\finfit.par'
+    parpath = os.path.join('activememory', 'finfit.par')
     treeheadings = ('ID', 'A', 'B', 'C', 'rms')
     def __init__(self, root, parent):
         super().__init__(root, parent)
         allfits = []
-        for i, fil in enumerate(os.listdir('activememory\\finalfitbank')):
-            newfit = FitFile(f'activememory\\finalfitbank\\{fil}')
-            toshow = (newfit.name.split('\\')[-1][:-4], newfit.vardict['A'], newfit.vardict['B'], newfit.vardict['C'], newfit.rms, i)
+        for i, fil in enumerate(os.listdir(os.path.join('activememory', 'finalfitbank'))):
+            newfit = FitFile(os.path.join('activememory', 'finalfitbank', fil))
+            # toshow = (newfit.name.split('\\')[-1][:-4], newfit.vardict['A'], newfit.vardict['B'], newfit.vardict['C'], newfit.rms, i)
+            toshow = (os.path.basename(newfit.name)[:-4], newfit.vardict['A'], newfit.vardict['B'], newfit.vardict['C'], newfit.rms, i)
             self.fitdisp.insert('', 'end', values = toshow)
             allfits += [newfit]
         def comp():
-            lin = LinFile('activememory\\finfit.lin')
+            lin = LinFile(os.path.join('activememory','finfit.lin'))
             for item in self.fitdisp.selection():
                 lin.assign(allfits[int(self.fitdisp.item(item, 'values')[-1])].assignments)
             lin.makefile()
@@ -253,12 +255,12 @@ class fitbankwindow(fitbankbase):
                 values = [float(entry.get()) for entry in entries]
                 intfil = IntFile(self.parpath[:-3] + 'int', values)
                 intfil.makefile()
-                call(['Rot\\spcat', self.parpath[:-3] + 'var'],
+                call([os.path.join('Rot', 'spcat'), self.parpath[:-3] + 'var'],
                      stdout = DEVNULL, shell = True)
                 input_window.destroy()
 
             if 'base.int' in os.listdir('activememory'):
-                shutil.copy('activememory\\base.int', self.parpath[:-3] + 'int')
+                shutil.copy(os.path.join('activememory', 'base.int'), self.parpath[:-3] + 'int')
             else:
                 input_window = Toplevel(root)
                 input_window.title('Input Dipole Moments')
@@ -296,7 +298,7 @@ class fitbankwindow(fitbankbase):
             values = [float(entry.get()) for entry in self.entries]
             uncs = [1e-3 if fix.get() else 1e3 for fix in self.toggles]            
 
-            with open('longtermmem\\abc.txt', 'w') as f:
+            with open(os.path.join('longtermmem', 'abc.txt'), 'w') as f:
                 for val in values:
                     f.write(str(val) + '\n')
             
@@ -312,7 +314,7 @@ class fitbankwindow(fitbankbase):
                     self.parfil.pars[items[3]] = (-items[2], unc, '-' + dist)
 
             self.parfil.makefile()                
-            call(['Rot\\spfit', self.parpath],
+            call([os.path.join('Rot', 'spfit'), self.parpath],
                  stdout = DEVNULL, shell = True)
             os.remove(self.parpath[:-3] + 'bak')
             finfit = FitFile(self.parpath[:-3] + 'fit')
@@ -329,7 +331,7 @@ class fitbankwindow(fitbankbase):
         viewbutton.configure(command = viewfit)
 
 class fitpolishwindow(fitbankwindow):
-    parpath = 'activememory\\polishfit.par'
+    parpath = os.path.join('activememory', 'polishfit.par')
     def __init__(self, root, parent):
         super().__init__(root)
         self.fitdisp.destroy() 
