@@ -219,7 +219,7 @@ class LayeredDiGraph:
         return np.sum(mat)
 
 
-class wfitfinder:
+class fitfinder:
 
     def __init__(self, startwin, ratwin, derwin, prog, specwindow, fileloc = 'activememory', coarsefitter = None, coarsecut = 1):        
         currtime = time.time()
@@ -285,7 +285,7 @@ class wfitfinder:
         currtime = newtime
 
     def loadpreds(self, fileloc, specwindow, prog):
-        cat = CatFile(fileloc + 'base.cat')
+        cat = CatFile(os.path.join(fileloc, 'base.cat'))
         progtranses = []
         for trans in cat.transes:
             if specwindow[0] < trans[-2] < specwindow[1]:
