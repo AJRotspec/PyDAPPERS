@@ -137,6 +137,10 @@ class mainwindow():
             with open(os.path.join('activememory', 'peaklist.txt'), 'w') as f:
                 f.write('\n')
 
+        if not 'base.cat' in os.listdir('activememory'):
+            with open(os.path.join('activememory', 'base.cat'), 'w') as f:
+                f.write('\n')
+
 
     def initialize_globals(self):
         with open(os.path.join('longtermmem', 'path.txt'), 'r') as f:
