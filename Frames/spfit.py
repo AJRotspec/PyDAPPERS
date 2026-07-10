@@ -175,7 +175,7 @@ class runfitswindow(fitbankbase):
             
             def fittores(fitfile):
                 # return (fitfile.vardict['A'], fitfile.vardict['B'], fitfile.vardict['C'], fitfile.rms, fitfile.name.split('\\')[-1][:-4], fitfile.assignments)
-                return (fitfile.vardict['A'], fitfile.vardict['B'], fitfile.vardict['C'], fitfile.rms, os.path.basenamd(fitfile.name)[:-4], fitfile.assignments)
+                return (fitfile.vardict['A'], fitfile.vardict['B'], fitfile.vardict['C'], fitfile.rms, os.path.basename(fitfile.name)[:-4], fitfile.assignments)
             
             for fit in fitlist:
                 shutil.copy(os.path.join('activememory', 'fitstart.par'), os.path.join('activememory', 'basefitbank', f'{fit[:-3]}par'))
