@@ -366,10 +366,9 @@ class CatFile:
         self.transes = []
         with open(filename, 'r') as f:
             for line in f.readlines():
-                # try:
+                if not line.strip() or len(line) < 72:
+                    continue
                 self.transes.append(self.readline(line))
-                # except:
-                    # print(line)
         self.transes.sort(key = lambda x: x[-2])
         
     def points(self, a, b):
